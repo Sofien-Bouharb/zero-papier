@@ -1,0 +1,7 @@
+/uploads/
+*.log
+*.sql
+*.env
+vendor/
+node_modules/
+includes/db.php
