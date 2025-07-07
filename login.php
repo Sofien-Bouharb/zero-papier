@@ -20,8 +20,8 @@ try {
         $_SESSION['admin_id'] = $admin['admin_id'];
         $_SESSION['admin_username'] = $admin['username'];
         $_SESSION['LAST_ACTIVITY'] = time(); // For timeout tracking
-        $_SESSION['CREATED'] = time();  
-       
+        $_SESSION['CREATED'] = time();
+
         header("Location: admin/dashboard.php");
         exit();
     } else {

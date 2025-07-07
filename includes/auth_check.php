@@ -11,7 +11,7 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY']) >
     header("Location: login.php?timeout=1"); // Redirection avec message
     exit();
 }
-$_SESSION['LAST_ACTIVITY'] = time(); 
+$_SESSION['LAST_ACTIVITY'] = time();
 
 if (!isset($_SESSION['admin_id'])) {
     header("Location: /index.php");

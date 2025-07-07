@@ -2,20 +2,20 @@
 // index.php
 session_start();
 if (isset($_SESSION['admin_id'])) {
-    header("Location: admin/dashboard.php");
-    exit();
+  header("Location: admin/dashboard.php");
+  exit();
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Admin Login</title>
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
+    rel="stylesheet" />
   <style>
     body {
       background-color: #0f1218;
@@ -49,7 +49,7 @@ if (isset($_SESSION['admin_id'])) {
     input[type="text"],
     input[type="password"] {
       background: #0a0f14;
-      width: 100%;  
+      width: 100%;
       border: 1px solid #28a5b2;
       color: #33d6e6;
       border-radius: 6px;
@@ -67,36 +67,36 @@ if (isset($_SESSION['admin_id'])) {
     }
 
     button {
-    display: block;
-    width: 100%;
-    background-color: #33d6e6;
-    border: none;
-    color: #0a0f14;
-    font-weight: bold;
-    padding: 0.5rem 0;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-    box-shadow: none;
+      display: block;
+      width: 100%;
+      background-color: #33d6e6;
+      border: none;
+      color: #0a0f14;
+      font-weight: bold;
+      padding: 0.5rem 0;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      box-shadow: none;
     }
+
     button:hover {
       background-color: #28a5b2;
       color: #f0f9fb;
     }
 
-body {
-    background-image: url('../assets/bg2.avif'); 
-    background-size: cover;                  
-    background-repeat: no-repeat;            
-    background-position: center;             
-    background-attachment: fixed;             
-    color: white;                             
-  }
-
-
+    body {
+      background-image: url('../assets/bg2.avif');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+    }
   </style>
 </head>
+
 <body>
-  <form action="login.php" method="POST" autocomplete="off" spellcheck="false" >
+  <form action="login.php" method="POST" autocomplete="off" spellcheck="false">
     <h2>Admin Login</h2>
     <div class="mb-3">
       <label for="username">Username</label>
@@ -106,8 +106,7 @@ body {
         id="username"
         required
         autofocus
-        autocomplete="username"
-      />
+        autocomplete="username" />
     </div>
     <div class="mb-3">
       <label for="password">Password</label>
@@ -116,10 +115,10 @@ body {
         name="password"
         id="password"
         required
-        autocomplete="current-password"
-      />
+        autocomplete="current-password" />
     </div>
     <button type="submit">Login</button>
   </form>
 </body>
+
 </html>
