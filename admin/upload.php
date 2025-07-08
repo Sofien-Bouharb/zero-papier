@@ -29,13 +29,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     die("Tous les champs sont obligatoires, et vous devez sélectionner au moins une association poste-carte.");
   }
 
-  $check = $pdo->prepare("SELECT COUNT(*) FROM documents_search.documents WHERE document_name = :name");
-  $check->execute(['name' => $document_name]);
+  // Get original filename (e.g., xyz.pdf), sanitize it
+  $original_name = basename($file['name']);
+  $filename = preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $original_name);
+
+  // Check if file_path already exists in DB
+  $check = $pdo->prepare("SELECT COUNT(*) FROM documents_search.documents WHERE file_path = :path");
+  $check->execute(['path' => $filename]);
+
   if ($check->fetchColumn() > 0) {
-    die("Un document avec ce nom existe déjà. Veuillez choisir un nom unique.");
+    die("Un fichier avec ce file path existe déjà. Veuillez renommer le fichier avant de l’uploader.");
   }
 
-  $filename = slugify($document_name) . '.pdf';
   $upload_dir = '../uploads/';
   $target_path = $upload_dir . $filename;
 
@@ -63,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo "Erreur lors du téléversement du fichier.";
   }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -79,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h2>Ajouter un document PDF</h2>
     <form method="POST" enctype="multipart/form-data" class="mt-4">
       <div class="mb-3">
-        <label for="document_name" class="form-label">Nom du document (unique)</label>
+        <label for="document_name" class="form-label">Nom du document</label>
         <input type="text" name="document_name" id="document_name" class="form-control" required>
       </div>
 
@@ -90,9 +96,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="mb-3">
         <label for="ilot_select" class="form-label">Choisir un îlot :</label>
-        <select id="ilot_select" class="form-select" required onchange="filterPostsByIlot()">
-          <?php foreach ($ilots as $ilot): ?>
-            <option value="<?= $ilot['ilot_id'] ?>" <?= $ilot['ilot_name'] === 'ilot1' ? 'selected' : '' ?>>
+        <select id="ilot_select" class="form-select" onchange="filterPostsByIlot()">
+          <?php foreach ($ilots as $index => $ilot): ?>
+            <option value="<?= $ilot['ilot_id'] ?>" <?= $index === 0 ? 'selected' : '' ?>>
               <?= htmlspecialchars($ilot['ilot_name']) ?>
             </option>
           <?php endforeach; ?>
@@ -135,32 +141,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      filterPostsByIlot(); // Auto-run on page load
-    });
-
     function filterPostsByIlot() {
       const ilotSelect = document.getElementById('ilot_select');
       const selectedIlot = ilotSelect.value;
       const postSelect = document.getElementById('selected_post');
 
+      let found = false;
+
       Array.from(postSelect.options).forEach(option => {
         if (!option.value) {
-          option.style.display = 'block';
+          option.style.display = 'block'; // Keep the placeholder
           return;
         }
 
-        const optionIlot = option.getAttribute('data-ilot-id');
-
-        if (optionIlot === selectedIlot) {
+        const ilotId = option.getAttribute('data-ilot-id');
+        if (ilotId === selectedIlot) {
           option.style.display = 'block';
+          if (!found) {
+            option.selected = true;
+            found = true;
+          }
         } else {
           option.style.display = 'none';
+          option.selected = false;
         }
       });
 
-      postSelect.selectedIndex = 0; // Reset post selection
+      // If no match was found, reset selection to placeholder
+      if (!found) {
+        postSelect.selectedIndex = 0;
+      }
     }
+
+    // Run it once on page load
+    document.addEventListener('DOMContentLoaded', filterPostsByIlot);
 
 
 

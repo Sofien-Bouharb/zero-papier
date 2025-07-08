@@ -138,8 +138,8 @@ $view = $_GET['view'] ?? 'documents';
               <td><?= htmlspecialchars($w['ip_address']) ?></td>
               <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td> <!-- 🆕 -->
               <td style="text-align:center;">
-                <a href="edit_document.php?id=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
-                <a href="delete_document.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>
+                <a href="edit_post.php?id=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
+                <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -150,9 +150,19 @@ $view = $_GET['view'] ?? 'documents';
     <?php else: // default view = documents 
     ?>
       <h3 class="mb-3">Liste des documents</h3>
-      <a href="upload.php" class="btn btn-success m-3">📤 Ajouter un document</a>
+      <div class="row mb-3">
+        <div class="col-md-4 d-flex justify-content-start">
+          <a href="upload.php" class="btn btn-success m-3">📤 Ajouter un document</a>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center">
+          <a href="edit_document_main.php" class="btn btn-warning m-3">🛠️ Modifier un document</a>
+        </div>
+        <div class="col-md-4 d-flex justify-content-end">
+          <a href="#" class="btn btn-danger m-3" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Supprimer un document complètement">🛑 Supprimer un document</a>
+        </div>
+      </div>
 
-      <table class="table table-dark table-bordered table-hover align-middle" style="border-width: 2px; border-color:rgb(188, 208, 212);">
+      <table id="documentsTable" class="table table-dark table-bordered table-hover align-middle" style="border-width: 2px; border-color:rgb(188, 208, 212);">
         <thead>
           <tr>
             <th style="text-align:center;">Nom du document</th>
@@ -168,7 +178,7 @@ $view = $_GET['view'] ?? 'documents';
           $stmt = $pdo->query("
         SELECT d.document_id, d.document_name, d.file_path,
                b.board_name, b.board_index_id,
-               w.hostname
+               w.hostname,w.step_number
         FROM documents_search.board_post_documents bp
         JOIN documents_search.documents d ON bp.document_id = d.document_id
         JOIN documents_search.boards b ON bp.board_index_id = b.board_index_id
@@ -178,7 +188,7 @@ $view = $_GET['view'] ?? 'documents';
           $rows = $stmt->fetchAll();
 
           foreach ($rows as $row): ?>
-            <tr>
+            <tr data-doc-id="<?= $row['document_id'] ?>">
               <td><?= htmlspecialchars($row['document_name']) ?></td>
               <td>
                 <a href="/uploads/<?= urlencode($row['file_path']) ?>" target="_blank" class="text-info">
@@ -189,17 +199,110 @@ $view = $_GET['view'] ?? 'documents';
               <td><strong><?= htmlspecialchars($row['board_name']) ?> (ID: <?= $row['board_index_id'] ?>)</strong></td>
 
               <td style="text-align:center;">
-                <a href="edit_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&hostname=<?= urlencode($row['hostname']) ?>" class="text-warning me-3" title="Modifier">✏️</a>
+                <a href="edit_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-warning me-3" title="Modifier">✏️</a>
 
-                <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&hostname=<?= urlencode($row['hostname']) ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer cette association ?');">🗑️</a>
+                <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');">🗑️</a>
               </td>
             </tr>
           <?php endforeach; ?>
         </tbody>
       </table>
+
+
+
+
     <?php endif; ?>
 
   </div>
+
+
+  <!-- Delete Document Modal -->
+  <div class="modal fade" id="deleteDocumentModal" tabindex="-1" aria-labelledby="deleteDocumentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteDocumentModalLabel">Supprimer un document</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <div id="delete-feedback"></div>
+          <ul class="list-group" id="document-list">
+            <!-- AJAX will insert document rows here -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const modalElement = document.getElementById('deleteDocumentModal');
+
+      if (modalElement) {
+        modalElement.addEventListener('shown.bs.modal', function() {
+
+          loadDocuments();
+        });
+      }
+
+      function loadDocuments() {
+        fetch('get_documents.php')
+          .then(response => response.json())
+          .then(data => {
+            const list = document.getElementById('document-list');
+            list.innerHTML = '';
+
+            data.forEach(doc => {
+              const item = document.createElement('li');
+              item.className = 'list-group-item d-flex justify-content-between align-items-center bg-secondary text-white mb-1';
+              item.innerHTML = `
+            ${doc.document_name}
+            <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.document_id}, this)">Supprimer</button>
+          `;
+              list.appendChild(item);
+            });
+          })
+          .catch(error => {
+            console.error('Erreur lors du chargement des documents:', error);
+          });
+      }
+
+      window.deleteDocument = function(id, btn) {
+        if (!confirm('Confirmer la suppression du document ?')) return;
+
+        fetch('delete_document.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'document_id=' + encodeURIComponent(id)
+          })
+          .then(response => response.text())
+          .then(result => {
+            if (result === 'success') {
+              // Remove from modal list
+              btn.parentElement.remove();
+
+              // Remove all corresponding rows from the main table
+              const rows = document.querySelectorAll(`#documentsTable tr[data-doc-id="${id}"]`);
+              rows.forEach(row => row.remove());
+
+              document.getElementById('delete-feedback').innerHTML =
+                '<div class="alert alert-success">Document supprimé avec succès.</div>';
+            } else {
+              document.getElementById('delete-feedback').innerHTML =
+                '<div class="alert alert-danger">Erreur lors de la suppression.</div>';
+            }
+          });
+      };
+
+
+    });
+  </script>
+
+
+
+
 </body>
 
 </html>
