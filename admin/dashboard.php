@@ -226,7 +226,7 @@ $view = $_GET['view'] ?? 'documents';
         </div>
         <div class="modal-body">
           <div id="delete-feedback"></div>
-          <ul class="list-group" id="document-list">
+          <ul id="document-list" class="list-group" style="max-height: 350px; overflow-y: auto;">
             <!-- AJAX will insert document rows here -->
           </ul>
         </div>
@@ -256,11 +256,19 @@ $view = $_GET['view'] ?? 'documents';
               const item = document.createElement('li');
               item.className = 'list-group-item d-flex justify-content-between align-items-center bg-secondary text-white mb-1';
               item.innerHTML = `
-            ${doc.document_name}
-            <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.document_id}, this)">Supprimer</button>
-          `;
+    <div>
+      <strong>${doc.document_name}</strong><br>
+      <small>
+        <a href="../uploads/${encodeURIComponent(doc.file_path)}" target="_blank" class="text-warning text-decoration-underline">
+          📄 ${doc.file_path}
+        </a>
+      </small>
+    </div>
+    <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.document_id}, this)">Supprimer</button>
+  `;
               list.appendChild(item);
             });
+
           })
           .catch(error => {
             console.error('Erreur lors du chargement des documents:', error);
@@ -287,11 +295,19 @@ $view = $_GET['view'] ?? 'documents';
               const rows = document.querySelectorAll(`#documentsTable tr[data-doc-id="${id}"]`);
               rows.forEach(row => row.remove());
 
-              document.getElementById('delete-feedback').innerHTML =
-                '<div class="alert alert-success">Document supprimé avec succès.</div>';
+              const feedback = document.getElementById('delete-feedback');
+              feedback.innerHTML = '<div class="alert alert-success">Document supprimé avec succès.</div>';
+
+              // Auto-hide after 3 seconds
+              setTimeout(() => {
+                feedback.innerHTML = '';
+              }, 3000);
+
             } else {
-              document.getElementById('delete-feedback').innerHTML =
-                '<div class="alert alert-danger">Erreur lors de la suppression.</div>';
+              feedback.innerHTML = '<div class="alert alert-danger">Erreur lors de la suppression.</div>';
+              setTimeout(() => {
+                feedback.innerHTML = '';
+              }, 3000);
             }
           });
       };
