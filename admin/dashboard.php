@@ -77,6 +77,7 @@ $view = $_GET['view'] ?? 'documents';
       <table class="table table-dark table-bordered table-hover">
         <thead>
           <tr>
+            <th style="text-align:center;">Code</th>
             <th style="text-align:center;">Nom</th>
             <th style="text-align:center;">Repère DM</th>
             <th style="text-align:center;">Désignation</th>
@@ -93,6 +94,7 @@ $view = $_GET['view'] ?? 'documents';
           foreach ($boards as $b):
           ?>
             <tr>
+              <td><?= htmlspecialchars($b['board_index_id']) ?></td>
               <td><?= htmlspecialchars($b['board_name']) ?></td>
               <td><?= htmlspecialchars($b['repere_dm'] ?? '-') ?></td>
               <td><?= htmlspecialchars($b['designation'] ?? '-') ?></td>
@@ -100,7 +102,7 @@ $view = $_GET['view'] ?? 'documents';
               <td><?= htmlspecialchars($b['ref_pcb'] ?? '-') ?></td>
               <td><?= htmlspecialchars($b['clicher_pcb'] ?? '-') ?></td>
               <td style="text-align:center;">
-                <a href="edit_board.php?id=<?= $b['board_index_id'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
+                <a href="edit_board.php?board_index_id=<?= $b['board_index_id'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
                 <a href="delete_board.php?id=<?= $b['board_index_id'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer cette carte ?');">🗑️</a>
               </td>
 
@@ -118,7 +120,7 @@ $view = $_GET['view'] ?? 'documents';
           <tr>
             <th style="text-align:center;">Nom d'hôte (hostname)</th>
             <th style="text-align:center;">Adresse IP</th>
-            <th style="text-align:center;">Îlot</th> <!-- 🆕 -->
+            <th style="text-align:center;">Îlot</th>
             <th style="text-align:center;">Actions</th>
           </tr>
         </thead>
@@ -136,9 +138,9 @@ $view = $_GET['view'] ?? 'documents';
             <tr>
               <td><?= htmlspecialchars($w['hostname']) ?></td>
               <td><?= htmlspecialchars($w['ip_address']) ?></td>
-              <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td> <!-- 🆕 -->
+              <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td>
               <td style="text-align:center;">
-                <a href="edit_post.php?id=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
+                <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
                 <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>
               </td>
             </tr>
@@ -150,17 +152,11 @@ $view = $_GET['view'] ?? 'documents';
     <?php else: // default view = documents 
     ?>
       <h3 class="mb-3">Liste des documents</h3>
-      <div class="row mb-3">
-        <div class="col-md-4 d-flex justify-content-start">
-          <a href="upload.php" class="btn btn-success m-3">📤 Ajouter un document</a>
-        </div>
-        <div class="col-md-4 d-flex justify-content-center">
-          <a href="edit_document_main.php" class="btn btn-warning m-3">🛠️ Modifier un document</a>
-        </div>
-        <div class="col-md-4 d-flex justify-content-end">
-          <a href="#" class="btn btn-danger m-3" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Supprimer un document complètement">🛑 Supprimer un document</a>
-        </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="upload.php" class="btn btn-success">📤 Ajouter un document</a>
+        <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Modifier ou supprimer un document">🛠️ Modifier/Supprimer un document</a>
       </div>
+
 
       <table id="documentsTable" class="table table-dark table-bordered table-hover align-middle" style="border-width: 2px; border-color:rgb(188, 208, 212);">
         <thead>
@@ -191,7 +187,7 @@ $view = $_GET['view'] ?? 'documents';
             <tr data-doc-id="<?= $row['document_id'] ?>">
               <td><?= htmlspecialchars($row['document_name']) ?></td>
               <td>
-                <a href="/uploads/<?= urlencode($row['file_path']) ?>" target="_blank" class="text-info">
+                <a href="../uploads/<?= urlencode($row['file_path']) ?>" target="_blank" class="text-info">
                   <?= htmlspecialchars($row['file_path']) ?>
                 </a>
               </td>
@@ -199,8 +195,6 @@ $view = $_GET['view'] ?? 'documents';
               <td><strong><?= htmlspecialchars($row['board_name']) ?> (ID: <?= $row['board_index_id'] ?>)</strong></td>
 
               <td style="text-align:center;">
-                <a href="edit_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-warning me-3" title="Modifier">✏️</a>
-
                 <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');">🗑️</a>
               </td>
             </tr>
@@ -221,7 +215,7 @@ $view = $_GET['view'] ?? 'documents';
     <div class="modal-dialog modal-lg">
       <div class="modal-content bg-dark text-white">
         <div class="modal-header">
-          <h5 class="modal-title" id="deleteDocumentModalLabel">Supprimer un document</h5>
+          <h5 class="modal-title" id="deleteDocumentModalLabel">Modifier/Supprimer un document</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
@@ -254,20 +248,27 @@ $view = $_GET['view'] ?? 'documents';
 
             data.forEach(doc => {
               const item = document.createElement('li');
-              item.className = 'list-group-item d-flex justify-content-between align-items-center bg-secondary text-white mb-1';
+              item.className = 'list-group-item bg-secondary text-white mb-2';
+
               item.innerHTML = `
-    <div>
-      <strong>${doc.document_name}</strong><br>
-      <small>
-        <a href="../uploads/${encodeURIComponent(doc.file_path)}" target="_blank" class="text-warning text-decoration-underline">
-          📄 ${doc.file_path}
-        </a>
-      </small>
+    <div class="d-flex justify-content-between align-items-start flex-wrap">
+      <div>
+        <strong>${doc.document_name}</strong><br>
+        <small>
+        📄 <a href="../uploads/${doc.file_path}" target="_blank" class="text-info text-decoration-underline">  ${doc.file_path}</a>
+        </small>
+      </div>
+      <div class="mt-2 mt-sm-0">
+        <a href="edit_document.php?id=${doc.document_id}" class="btn btn-sm btn-warning me-2" title="Modifier ce document">Modifier document</a>
+        <a href="add_association.php?id=${doc.document_id}" class="btn btn-sm btn-info me-2" title="Ajouter des associations">Ajouter associations</a>
+        <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.document_id}, this)" title="Supprimer ce document complétement">Supprimer</button>
+      </div>
     </div>
-    <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.document_id}, this)">Supprimer</button>
   `;
+
               list.appendChild(item);
             });
+
 
           })
           .catch(error => {
@@ -289,7 +290,8 @@ $view = $_GET['view'] ?? 'documents';
           .then(result => {
             if (result === 'success') {
               // Remove from modal list
-              btn.parentElement.remove();
+              btn.closest('li').remove();
+
 
               // Remove all corresponding rows from the main table
               const rows = document.querySelectorAll(`#documentsTable tr[data-doc-id="${id}"]`);
