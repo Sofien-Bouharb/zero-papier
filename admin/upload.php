@@ -50,17 +50,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $document_id = $stmt->fetchColumn();
 
     $link_stmt = $pdo->prepare("INSERT INTO documents_search.board_post_documents (board_index_id, step_number, document_id) VALUES (:board_id, :step, :doc_id)");
+    $uniquePairs = [];
 
     foreach ($mappings as $map) {
       $step = $map['step_number'];
       foreach ($map['board_ids'] as $board) {
-        $link_stmt->execute([
-          'board_id' => $board,
+        $key = $step . '-' . $board;
+        $uniquePairs[$key] = [
           'step' => $step,
-          'doc_id' => $document_id
-        ]);
+          'board_id' => $board
+        ];
       }
     }
+
+    // Now insert only unique associations
+    foreach ($uniquePairs as $pair) {
+      $link_stmt->execute([
+        'board_id' => $pair['board_id'],
+        'step' => $pair['step'],
+        'doc_id' => $document_id
+      ]);
+    }
+
 
     header("Location: dashboard.php?view=documents");
     exit();
@@ -134,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <ul id="mappingList" class="mt-3"></ul>
 
-      <button type="submit" class="btn btn-primary my-3 ">📤 Téléverser</button>
+      <button type="submit" class="btn btn-primary my-3 ">📤 Enregistrer</button>
       <a href="dashboard.php" class="btn btn-secondary ms-2 my-3">Retour</a>
     </form>
 

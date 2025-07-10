@@ -213,6 +213,29 @@
             });
 
 
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const boardInput = document.getElementById('searchBoard');
+                const boardTbody = document.getElementById('boardsTableBody');
+
+                if (boardInput && boardTbody) {
+                    boardInput.addEventListener('keyup', function() {
+                        const query = boardInput.value;
+
+                        fetch('search_boards.php?q=' + encodeURIComponent(query))
+                            .then(response => response.text())
+                            .then(html => {
+                                boardTbody.innerHTML = html;
+                            })
+                            .catch(error => {
+                                console.error('Erreur AJAX lors de la recherche des cartes :', error);
+                            });
+                    });
+                }
+            });
+
+
+
             document.addEventListener('DOMContentLoaded', filterPostsByIlot);
         </script>
     </body>
