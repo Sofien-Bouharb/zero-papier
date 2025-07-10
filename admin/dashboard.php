@@ -12,7 +12,7 @@ $view = $_GET['view'] ?? 'documents';
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
 
 
   <style>
@@ -76,7 +76,7 @@ $view = $_GET['view'] ?? 'documents';
       <h3 class="mb-3">Liste des cartes (boards)</h3>
 
       <div class="my-3 d-flex justify-content-center">
-        <input type="text" id="searchBoard" class="form-control w-50" placeholder="🔍 Rechercher un code index, un nom, un repère, etc.">
+        <input type="text" id="searchBoard" class="form-control w-50" placeholder="🔍 Rechercher un code index, un nom, un repère, etc." autofocus>
       </div>
 
       <a href="add_board.php" class="btn btn-success m-3 ">📤 Ajouter un code index</a>
@@ -121,7 +121,7 @@ $view = $_GET['view'] ?? 'documents';
     <?php elseif ($view === 'posts'): ?>
       <h3 class="mb-3">Liste des postes (workers)</h3>
       <div class="mb-3 d-flex justify-content-center">
-        <input type="text" id="searchPost" class="form-control w-50" placeholder="🔍 Rechercher un poste, un ilot, une IP...">
+        <input type="text" id="searchPost" class="form-control w-50" placeholder="🔍 Rechercher un poste, un ilot, une IP..." autofocus>
       </div>
 
       <a href="add_post.php" class="btn btn-success m-3">📤 Ajouter un poste</a>
@@ -249,7 +249,7 @@ $view = $_GET['view'] ?? 'documents';
       </div>
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const modalElement = document.getElementById('deleteDocumentModal');
