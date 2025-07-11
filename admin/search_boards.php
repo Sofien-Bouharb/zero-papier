@@ -44,7 +44,7 @@ foreach ($boards as $b): ?>
 
 if (count($boards) === 0): ?>
     <tr>
-        <td colspan="8" class="text-center text-muted">Aucun résultat trouvé.</td>
+        <td colspan="8" class="text-center ">Aucun résultat trouvé.</td>
     </tr>
 <?php endif; ?>
 <script>

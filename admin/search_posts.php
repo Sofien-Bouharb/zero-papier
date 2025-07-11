@@ -43,6 +43,6 @@ foreach ($posts as $w): ?>
 
 if (count($posts) === 0): ?>
     <tr>
-        <td colspan="4" class="text-center text-muted">Aucun poste trouvé.</td>
+        <td colspan="4" class="text-center ">Aucun poste trouvé.</td>
     </tr>
 <?php endif; ?>

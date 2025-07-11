@@ -26,6 +26,8 @@ $view = $_GET['view'] ?? 'documents';
       color: white;
     }
 
+
+
     .nav-link {
       color: #00d6ff !important;
       font-weight: bold;
@@ -42,6 +44,12 @@ $view = $_GET['view'] ?? 'documents';
     .table th,
     .table td {
       vertical-align: middle;
+    }
+
+    .sticky-pagination {
+      border-bottom: 1px solid #444;
+      background-color: #212529;
+      /* Bootstrap dark */
     }
   </style>
 </head>
@@ -79,9 +87,9 @@ $view = $_GET['view'] ?? 'documents';
         <input type="text" id="searchBoard" class="form-control w-50" placeholder="🔍 Rechercher un code index, un nom, un repère, etc." autofocus>
       </div>
 
-      <a href="add_board.php" class="btn btn-success m-3 ">📤 Ajouter un code index</a>
+      <a href="add_board.php" class="btn btn-success mb-2 ">📤 Ajouter un code index</a>
 
-      <table class="table table-dark table-bordered table-hover">
+      <table class="table table-dark table-bordered table-hover" id="fixedHeaderTable">
         <thead>
           <tr>
             <th style="text-align:center;">Code</th>
@@ -118,15 +126,16 @@ $view = $_GET['view'] ?? 'documents';
         </tbody>
       </table>
 
+
     <?php elseif ($view === 'posts'): ?>
       <h3 class="mb-3">Liste des postes (workers)</h3>
       <div class="mb-3 d-flex justify-content-center">
         <input type="text" id="searchPost" class="form-control w-50" placeholder="🔍 Rechercher un poste, un ilot, une IP..." autofocus>
       </div>
 
-      <a href="add_post.php" class="btn btn-success m-3">📤 Ajouter un poste</a>
+      <a href="add_post.php" class="btn btn-success mb-2">📤 Ajouter un poste</a>
 
-      <table class="table table-dark table-bordered table-hover">
+      <table class="table table-dark table-bordered table-hover" id="fixedHeaderTable">
         <thead>
           <tr>
             <th style="text-align:center;">Nom d'hôte (hostname)</th>
@@ -160,23 +169,83 @@ $view = $_GET['view'] ?? 'documents';
       </table>
 
 
+
     <?php else: // default view = documents 
     ?>
       <h3 class="my-4">Liste des associations documents-postes-codes</h3>
-      <div class="mb-3 d-flex justify-content-center">
+      <div class="mb-4 d-flex justify-content-center">
         <input type="text" id="searchDocument" class="form-control w-50" placeholder="🔍 Rechercher un document, un poste, une carte..." autofocus>
       </div>
+      <?php
+      // Before outputting navbar in dashboard.php
+      $limit = 10;
+      $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+      $offset = ($page - 1) * $limit; // or your pagination limit
+      $countstmt = $pdo->query("SELECT COUNT(*) FROM documents_search.board_post_documents");
+      $totalRows = $countstmt->fetchColumn();
+      $totalPages = ceil($totalRows / $limit);
 
+      ?>
 
+      <div class="row align-items-center mb-2 text-center" id="paginationRow">
+        <div class="col-md-4 text-start">
+          <a href="upload.php" class="btn btn-success">📤 Ajouter un document</a>
+        </div>
 
+        <div class="col-md-4 text-center">
+          <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Modifier ou supprimer un document">🛠️ Modifier/Supprimer un document</a>
+        </div>
 
+        <?php
+        $range = 2; // how many pages to show before/after current
+        $showFirst = $page > $range + 2;
+        $showLast = $page < $totalPages - $range - 1;
+        ?>
 
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="upload.php" class="btn btn-success">📤 Ajouter un document</a>
-        <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Modifier ou supprimer un document">🛠️ Modifier/Supprimer un document</a>
+        <?php
+        $range = 2; // how many pages to show on either side of current
+        ?>
+        <div class="col-md-4 text-end" id="paginationContainer">
+          <nav id="mainPagination">
+            <ul class="pagination justify-content-end mb-0 align-middle">
+              <!-- Previous -->
+              <?php if ($page > 1): ?>
+                <li class="page-item">
+                  <a class="page-link" href="?page=<?= $page - 1 ?>">«</a>
+                </li>
+              <?php endif; ?>
+
+              <!-- First page -->
+              <?php if ($page > $range + 1): ?>
+                <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+              <?php endif; ?>
+
+              <!-- Pages around current -->
+              <?php
+              for ($i = max(1, $page - $range); $i <= min($totalPages, $page + $range); $i++):
+              ?>
+                <li class="page-item <?= ($i == $page ? 'active' : '') ?>">
+                  <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                </li>
+              <?php endfor; ?>
+
+              <!-- Last page -->
+              <?php if ($page < $totalPages - $range): ?>
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                <li class="page-item"><a class="page-link" href="?page=<?= $totalPages ?>"><?= $totalPages ?></a></li>
+              <?php endif; ?>
+
+              <!-- Next -->
+              <?php if ($page < $totalPages): ?>
+                <li class="page-item">
+                  <a class="page-link" href="?page=<?= $page + 1 ?>">»</a>
+                </li>
+              <?php endif; ?>
+            </ul>
+          </nav>
+        </div>
       </div>
-
-
 
       <table id="documentsTable" class="table table-dark table-bordered table-hover align-middle" style="border-width: 2px; border-color:rgb(188, 208, 212);">
         <thead>
@@ -191,17 +260,24 @@ $view = $_GET['view'] ?? 'documents';
         <tbody id="documentsTableBody">
           <?php
           // Get all associations (document ↔ board ↔ post)
-          $stmt = $pdo->query("
-        SELECT d.document_id, d.document_name, d.file_path,
-               b.board_name, b.board_index_id,
-               w.hostname,w.step_number
-        FROM documents_search.board_post_documents bp
-        JOIN documents_search.documents d ON bp.document_id = d.document_id
-        JOIN documents_search.boards b ON bp.board_index_id = b.board_index_id
-        JOIN documents_search.workers w ON bp.step_number = w.step_number
-        ORDER BY d.document_name ASC,w.hostname, b.board_name
-      ");
+          $stmt = $pdo->prepare("
+  SELECT d.document_id, d.document_name, d.file_path,
+         b.board_name, b.board_index_id,
+         w.hostname, w.step_number
+  FROM documents_search.board_post_documents bp
+  JOIN documents_search.documents d ON bp.document_id = d.document_id
+  JOIN documents_search.boards b ON bp.board_index_id = b.board_index_id
+  JOIN documents_search.workers w ON bp.step_number = w.step_number
+  ORDER BY d.document_name ASC, w.hostname, b.board_name
+  LIMIT :limit OFFSET :offset
+");
+
+          $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+          $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+          $stmt->execute();
+
           $rows = $stmt->fetchAll();
+
 
           foreach ($rows as $row): ?>
             <tr data-doc-id="<?= $row['document_id'] ?>">
@@ -221,6 +297,7 @@ $view = $_GET['view'] ?? 'documents';
           <?php endforeach; ?>
         </tbody>
       </table>
+
 
 
 
@@ -413,24 +490,49 @@ $view = $_GET['view'] ?? 'documents';
 
 
 
-
     document.addEventListener('DOMContentLoaded', function() {
       const input = document.getElementById('searchDocument');
       const tbody = document.getElementById('documentsTableBody');
+      const mainPagination = document.getElementById('mainPagination');
+      const paginationRow = document.getElementById('paginationRow');
 
-      input.addEventListener('keyup', function() {
-        const query = input.value;
+      function loadSearchResults(query = '', page = 1) {
+        if (query === '') {
+          // Reset to default full view
+          window.location.reload();
+          return;
+        }
 
-        fetch('search_documents.php?q=' + encodeURIComponent(query))
+        fetch(`search_documents.php?q=${encodeURIComponent(query)}&page=${page}`)
           .then(response => response.text())
           .then(html => {
             tbody.innerHTML = html;
+            mainPagination.style.display = 'none'; // Hide dashboard pagination
+            attachPaginationHandlers();
           })
           .catch(error => {
             console.error('Erreur AJAX lors de la recherche des documents :', error);
           });
+      }
+
+      input.addEventListener('keyup', function() {
+        const query = input.value.trim();
+
+        loadSearchResults(query, 1);
       });
+
+      function attachPaginationHandlers() {
+        document.querySelectorAll('.search-page-link').forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = parseInt(this.dataset.page);
+            const query = input.value.trim();
+            loadSearchResults(query, page);
+          });
+        });
+      }
     });
+
 
     document.addEventListener('DOMContentLoaded', function() {
       const boardInput = document.getElementById('searchBoard');
