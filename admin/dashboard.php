@@ -83,100 +83,197 @@ $view = $_GET['view'] ?? 'documents';
     <?php if ($view === 'boards'): ?>
       <h3 class="mb-3">Liste des cartes (boards)</h3>
 
+
+
+
       <div class="my-3 d-flex justify-content-center">
         <input type="text" id="searchBoard" class="form-control w-50" placeholder="🔍 Rechercher un code index, un nom, un repère, etc." autofocus>
       </div>
+      <div class="row justify-content-between" id="paginationRow">
+        <div class="col-auto">
+          <a href="add_board.php" class="btn btn-success mb-2 ">📤 Ajouter un code index</a>
+        </div>
 
-      <a href="add_board.php" class="btn btn-success mb-2 ">📤 Ajouter un code index</a>
+        <?php
+        $limit = 10;
+        $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+        $offset = ($page - 1) * $limit;
 
-      <table class="table table-dark table-bordered table-hover" id="fixedHeaderTable">
-        <thead>
+        // Total row count
+        $countstmt = $pdo->query("SELECT COUNT(*) FROM documents_search.boards");
+        $totalRows = $countstmt->fetchColumn();
+        $totalPages = ceil($totalRows / $limit);
+        ?>
+
+        <?php if ($totalPages > 1): ?>
+          <div class="col-auto" id="paginationContainer">
+            <nav id="mainPagination">
+              <ul class="pagination pagination-sm">
+                <?php
+                $range = 2;
+
+                if ($page > 1):
+                  echo '<li class="page-item"><a href="?view=boards&page=' . ($page - 1) . '" class="page-link page-link-nav" data-page="' . ($page - 1) . '">«</a></li>';
+                endif;
+
+                if ($page > $range + 1):
+                  echo '<li class="page-item"><a href="?view=boards&page=1" class="page-link page-link-nav" data-page="1">1</a></li>';
+                  echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                endif;
+
+                for ($i = max(1, $page - $range); $i <= min($totalPages, $page + $range); $i++):
+                  $active = ($i == $page) ? 'active' : '';
+                  echo '<li class="page-item ' . $active . '"><a href="?view=boards&page=' . $i . '" class="page-link page-link-nav" data-page="' . $i . '">' . $i . '</a></li>';
+                endfor;
+
+                if ($page < $totalPages - $range):
+                  echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                  echo '<li class="page-item"><a href="?view=boards&page=' . $totalPages . '" class="page-link page-link-nav" data-page="' . $totalPages . '">' . $totalPages . '</a></li>';
+                endif;
+
+                if ($page < $totalPages):
+                  echo '<li class="page-item"><a href="?view=boards&page=' . ($page + 1) . '" class="page-link page-link-nav" data-page="' . ($page + 1) . '">»</a></li>';
+                endif;
+                ?>
+              </ul>
+            </nav>
+
+          </div>
+
+      </div>
+    <?php endif; ?>
+
+
+
+
+    <table class="table table-dark table-bordered table-hover" id="fixedHeaderTable">
+      <thead>
+        <tr>
+          <th style="text-align:center;">Code</th>
+          <th style="text-align:center;">Nom</th>
+          <th style="text-align:center;">Repère DM</th>
+          <th style="text-align:center;">Désignation</th>
+          <th style="text-align:center;">Réf CIE</th>
+          <th style="text-align:center;">Réf PCB</th>
+          <th style="text-align:center;">Clicher PCB</th>
+          <th style="text-align:center;">Actions</th>
+
+        </tr>
+      </thead>
+      <tbody id="boardsTableBody">
+        <?php
+
+
+        // Paginated data
+        $stmt = $pdo->prepare("SELECT * FROM documents_search.boards ORDER BY board_name LIMIT :limit OFFSET :offset");
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $boards = $stmt->fetchAll();
+
+        foreach ($boards as $b):
+        ?>
           <tr>
-            <th style="text-align:center;">Code</th>
-            <th style="text-align:center;">Nom</th>
-            <th style="text-align:center;">Repère DM</th>
-            <th style="text-align:center;">Désignation</th>
-            <th style="text-align:center;">Réf CIE</th>
-            <th style="text-align:center;">Réf PCB</th>
-            <th style="text-align:center;">Clicher PCB</th>
-            <th style="text-align:center;">Actions</th>
+            <td><?= htmlspecialchars($b['board_index_id']) ?></td>
+            <td><?= htmlspecialchars($b['board_name']) ?></td>
+            <td><?= htmlspecialchars($b['repere_dm'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($b['designation'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($b['ref_cie_actia'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($b['ref_pcb'] ?? '-') ?></td>
+            <td><?= htmlspecialchars($b['clicher_pcb'] ?? '-') ?></td>
+            <td style="text-align:center;">
+              <a href="edit_board.php?board_index_id=<?= $b['board_index_id'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
+              <a href="delete_board.php?id=<?= $b['board_index_id'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer cette carte ?');">🗑️</a>
+            </td>
 
           </tr>
-        </thead>
-        <tbody id="boardsTableBody">
-          <?php
-          $boards = $pdo->query("SELECT * FROM documents_search.boards ORDER BY board_name")->fetchAll();
-          foreach ($boards as $b):
-          ?>
-            <tr>
-              <td><?= htmlspecialchars($b['board_index_id']) ?></td>
-              <td><?= htmlspecialchars($b['board_name']) ?></td>
-              <td><?= htmlspecialchars($b['repere_dm'] ?? '-') ?></td>
-              <td><?= htmlspecialchars($b['designation'] ?? '-') ?></td>
-              <td><?= htmlspecialchars($b['ref_cie'] ?? '-') ?></td>
-              <td><?= htmlspecialchars($b['ref_pcb'] ?? '-') ?></td>
-              <td><?= htmlspecialchars($b['clicher_pcb'] ?? '-') ?></td>
-              <td style="text-align:center;">
-                <a href="edit_board.php?board_index_id=<?= $b['board_index_id'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
-                <a href="delete_board.php?id=<?= $b['board_index_id'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer cette carte ?');">🗑️</a>
-              </td>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
 
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+  </div>
 
+<?php elseif ($view === 'posts'): ?>
+  <h3 class="mb-3">Liste des postes (workers)</h3>
+  <div class="mb-3 d-flex justify-content-center">
+    <input type="text" id="searchPost" class="form-control w-50" placeholder="🔍 Rechercher un poste, un ilot, une IP..." autofocus>
+  </div>
 
-    <?php elseif ($view === 'posts'): ?>
-      <h3 class="mb-3">Liste des postes (workers)</h3>
-      <div class="mb-3 d-flex justify-content-center">
-        <input type="text" id="searchPost" class="form-control w-50" placeholder="🔍 Rechercher un poste, un ilot, une IP..." autofocus>
-      </div>
-
+  <?php
+      $limit = 10;
+      $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+      $offset = ($page - 1) * $limit;
+      $countstmt = $pdo->query("SELECT COUNT(*) FROM documents_search.workers");
+      $totalRows = $countstmt->fetchColumn();
+      $totalPages = ceil($totalRows / $limit);
+  ?>
+  <div class="row justify-content-between" id="paginationRow">
+    <div class="col-auto">
       <a href="add_post.php" class="btn btn-success mb-2">📤 Ajouter un poste</a>
+    </div>
 
-      <table class="table table-dark table-bordered table-hover" id="fixedHeaderTable">
-        <thead>
-          <tr>
-            <th style="text-align:center;">Nom d'hôte (hostname)</th>
-            <th style="text-align:center;">Adresse IP</th>
-            <th style="text-align:center;">Îlot</th>
-            <th style="text-align:center;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="postsTableBody">
-          <?php
-          $workers = $pdo->query("
-        SELECT w.step_number, w.hostname, w.ip_address, i.ilot_name
-        FROM documents_search.workers w
-        LEFT JOIN documents_search.ilot i ON w.ilot_id = i.ilot_id
-        ORDER BY w.hostname
-      ")->fetchAll();
-
-          foreach ($workers as $w):
-          ?>
-            <tr>
-              <td><?= htmlspecialchars($w['hostname']) ?></td>
-              <td><?= htmlspecialchars($w['ip_address']) ?></td>
-              <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td>
-              <td style="text-align:center;">
-                <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
-                <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-
-
-
-    <?php else: // default view = documents 
-    ?>
-      <h3 class="my-4">Liste des associations documents-postes-codes</h3>
-      <div class="mb-4 d-flex justify-content-center">
-        <input type="text" id="searchDocument" class="form-control w-50" placeholder="🔍 Rechercher un document, un poste, une carte..." autofocus>
+    <div class="col-auto">
+      <div class="d-flex justify-content-end mb-2">
+        <nav id="mainPagination">
+          <ul class="pagination justify-content-end mb-0 pagination-sm">
+            <?php if ($totalPages > 1): ?>
+              <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <li class="page-item <?= $i === $page ? 'active' : '' ?>">
+                  <a class="page-link page-link-nav" href="#" data-page="<?= $i ?>"><?= $i ?></a>
+                </li>
+              <?php endfor; ?>
+            <?php endif; ?>
+          </ul>
+        </nav>
       </div>
+    </div>
+
+  </div>
+
+  <table class="table table-dark table-bordered table-hover">
+    <thead>
+      <tr>
+        <th style="text-align:center;">Nom d'hôte (hostname)</th>
+        <th style="text-align:center;">Adresse IP</th>
+        <th style="text-align:center;">Ilot</th>
+        <th style="text-align:center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="postsTableBody">
       <?php
+      $stmt = $pdo->prepare("SELECT w.step_number, w.hostname, w.ip_address, i.ilot_name
+                            FROM documents_search.workers w
+                            LEFT JOIN documents_search.ilot i ON w.ilot_id = i.ilot_id
+                            ORDER BY w.hostname
+                            LIMIT :limit OFFSET :offset");
+      $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+      $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+      $stmt->execute();
+      $workers = $stmt->fetchAll();
+
+      foreach ($workers as $w): ?>
+        <tr>
+          <td><?= htmlspecialchars($w['hostname']) ?></td>
+          <td><?= htmlspecialchars($w['ip_address']) ?></td>
+          <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td>
+          <td style="text-align:center;">
+            <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
+            <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+
+
+
+<?php else: // default view = documents 
+?>
+  <h3 class="my-4">Liste des associations documents-postes-codes</h3>
+  <div class="mb-4 d-flex justify-content-center">
+    <input type="text" id="searchDocument" class="form-control w-50" placeholder="🔍 Rechercher un document, un poste, une carte..." autofocus>
+  </div>
+  <?php
       // Before outputting navbar in dashboard.php
       $limit = 10;
       $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
@@ -185,82 +282,80 @@ $view = $_GET['view'] ?? 'documents';
       $totalRows = $countstmt->fetchColumn();
       $totalPages = ceil($totalRows / $limit);
 
-      ?>
+  ?>
 
-      <div class="row align-items-center mb-2 text-center" id="paginationRow">
-        <div class="col-md-4 text-start">
-          <a href="upload.php" class="btn btn-success">📤 Ajouter un document</a>
-        </div>
+  <div class="row align-items-center mb-2 text-center" id="paginationRow">
 
-        <div class="col-md-4 text-center">
-          <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Modifier ou supprimer un document">🛠️ Modifier/Supprimer un document</a>
-        </div>
+    <div class="col-md-4 text-start">
+      <a href="upload.php" class="btn btn-success">📤 Ajouter un document</a>
+    </div>
 
-        <?php
-        $range = 2; // how many pages to show before/after current
-        $showFirst = $page > $range + 2;
-        $showLast = $page < $totalPages - $range - 1;
-        ?>
+    <div class="col-md-4 text-center">
+      <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Modifier ou supprimer un document">🛠️ Modifier/Supprimer un document</a>
+    </div>
 
-        <?php
-        $range = 2; // how many pages to show on either side of current
-        ?>
-        <div class="col-md-4 text-end" id="paginationContainer">
-          <nav id="mainPagination">
-            <ul class="pagination justify-content-end mb-0 align-middle">
-              <!-- Previous -->
-              <?php if ($page > 1): ?>
-                <li class="page-item">
-                  <a class="page-link" href="?page=<?= $page - 1 ?>">«</a>
-                </li>
-              <?php endif; ?>
 
-              <!-- First page -->
-              <?php if ($page > $range + 1): ?>
-                <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
-                <li class="page-item disabled"><span class="page-link">…</span></li>
-              <?php endif; ?>
 
-              <!-- Pages around current -->
-              <?php
-              for ($i = max(1, $page - $range); $i <= min($totalPages, $page + $range); $i++):
-              ?>
-                <li class="page-item <?= ($i == $page ? 'active' : '') ?>">
-                  <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
-                </li>
-              <?php endfor; ?>
+    <?php
+      $range = 2; // pages around current page
+    ?>
+    <div class="col-md-4 text-end" id="paginationContainer">
+      <nav id="mainPagination">
+        <ul class="pagination justify-content-end mb-0 align-middle pagination-sm">
 
-              <!-- Last page -->
-              <?php if ($page < $totalPages - $range): ?>
-                <li class="page-item disabled"><span class="page-link">…</span></li>
-                <li class="page-item"><a class="page-link" href="?page=<?= $totalPages ?>"><?= $totalPages ?></a></li>
-              <?php endif; ?>
+          <!-- Previous -->
+          <?php if ($page > 1): ?>
+            <li class="page-item">
+              <a href="?page=<?= $page - 1 ?>" class="page-link page-link-nav" data-page="<?= $page - 1 ?>">«</a>
+            </li>
+          <?php endif; ?>
 
-              <!-- Next -->
-              <?php if ($page < $totalPages): ?>
-                <li class="page-item">
-                  <a class="page-link" href="?page=<?= $page + 1 ?>">»</a>
-                </li>
-              <?php endif; ?>
-            </ul>
-          </nav>
-        </div>
-      </div>
+          <!-- First page + ellipsis -->
+          <?php if ($page > $range + 1): ?>
+            <li class="page-item"><a href="?page=1" class="page-link page-link-nav" data-page="1">1</a></li>
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          <?php endif; ?>
 
-      <table id="documentsTable" class="table table-dark table-bordered table-hover align-middle" style="border-width: 2px; border-color:rgb(188, 208, 212);">
-        <thead>
-          <tr>
-            <th style="text-align:center;">Nom du document</th>
-            <th style="text-align:center;">Fichier</th>
-            <th style="text-align:center;">Poste</th>
-            <th style="text-align:center;">Carte</th>
-            <th style="text-align:center;">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="documentsTableBody">
-          <?php
-          // Get all associations (document ↔ board ↔ post)
-          $stmt = $pdo->prepare("
+          <!-- Pages around current -->
+          <?php for ($i = max(1, $page - $range); $i <= min($totalPages, $page + $range); $i++): ?>
+            <li class="page-item <?= ($i == $page ? 'active' : '') ?>">
+              <a href="?page=<?= $i ?>" class="page-link page-link-nav" data-page="<?= $i ?>"><?= $i ?></a>
+            </li>
+          <?php endfor; ?>
+
+          <!-- Ellipsis + last page -->
+          <?php if ($page < $totalPages - $range): ?>
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+            <li class="page-item"><a href="?page=<?= $totalPages ?>" class="page-link page-link-nav" data-page="<?= $totalPages ?>"><?= $totalPages ?></a></li>
+          <?php endif; ?>
+
+          <!-- Next -->
+          <?php if ($page < $totalPages): ?>
+            <li class="page-item">
+              <a href="?page=<?= $page + 1 ?>" class="page-link page-link-nav" data-page="<?= $page + 1 ?>">»</a>
+            </li>
+          <?php endif; ?>
+
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+
+  <table id="documentsTable" class="table table-dark table-bordered table-hover align-middle" style="border-width: 2px; border-color:rgb(188, 208, 212);">
+    <thead>
+      <tr>
+        <th style="text-align:center;">Nom du document</th>
+        <th style="text-align:center;">Fichier</th>
+        <th style="text-align:center;">Poste</th>
+        <th style="text-align:center;">Carte</th>
+        <th style="text-align:center;">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="documentsTableBody">
+      <?php
+      // Get all associations (document ↔ board ↔ post)
+      $stmt = $pdo->prepare("
   SELECT d.document_id, d.document_name, d.file_path,
          b.board_name, b.board_index_id,
          w.hostname, w.step_number
@@ -272,85 +367,85 @@ $view = $_GET['view'] ?? 'documents';
   LIMIT :limit OFFSET :offset
 ");
 
-          $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-          $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
-          $stmt->execute();
+      $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+      $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+      $stmt->execute();
 
-          $rows = $stmt->fetchAll();
-
-
-          foreach ($rows as $row): ?>
-            <tr data-doc-id="<?= $row['document_id'] ?>">
-              <td><?= htmlspecialchars($row['document_name']) ?></td>
-              <td>
-                <a href="../uploads/<?= urlencode($row['file_path']) ?>" target="_blank" class="text-info">
-                  <?= htmlspecialchars($row['file_path']) ?>
-                </a>
-              </td>
-              <td><span><strong><?= htmlspecialchars($row['hostname']) ?></strong></span></td>
-              <td><strong><?= htmlspecialchars($row['board_name']) ?> (ID: <?= $row['board_index_id'] ?>)</strong></td>
-
-              <td style="text-align:center;">
-                <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');">🗑️</a>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+      $rows = $stmt->fetchAll();
 
 
+      foreach ($rows as $row): ?>
+        <tr data-doc-id="<?= $row['document_id'] ?>">
+          <td><?= htmlspecialchars($row['document_name']) ?></td>
+          <td>
+            <a href="../uploads/<?= urlencode($row['file_path']) ?>" target="_blank" class="text-info">
+              <?= htmlspecialchars($row['file_path']) ?>
+            </a>
+          </td>
+          <td><span><strong><?= htmlspecialchars($row['hostname']) ?></strong></span></td>
+          <td><strong><?= htmlspecialchars($row['board_name']) ?> (ID: <?= $row['board_index_id'] ?>)</strong></td>
+
+          <td style="text-align:center;">
+            <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');">🗑️</a>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
 
 
 
-    <?php endif; ?>
-
-  </div>
 
 
-  <!-- Delete Document Modal -->
-  <div class="modal fade" id="deleteDocumentModal" tabindex="-1" aria-labelledby="deleteDocumentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content bg-dark text-white">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteDocumentModalLabel">Modifier/Supprimer un document</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
-        </div>
-        <div class="modal-body">
-          <div id="delete-feedback"></div>
-          <input type="text" id="modalSearch" class="form-control mb-3" placeholder="🔍 Rechercher un document..." autofocus>
+<?php endif; ?>
 
-          <ul id="document-list" class="list-group" style="max-height: 350px; overflow-y: auto;">
-            <!-- AJAX will insert document rows here -->
-          </ul>
-        </div>
+</div>
+
+
+<!-- Delete Document Modal -->
+<div class="modal fade" id="deleteDocumentModal" tabindex="-1" aria-labelledby="deleteDocumentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteDocumentModalLabel">Modifier/Supprimer un document</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        <div id="delete-feedback"></div>
+        <input type="text" id="modalSearch" class="form-control mb-3" placeholder="🔍 Rechercher un document..." autofocus>
+
+        <ul id="document-list" class="list-group" style="max-height: 350px; overflow-y: auto;">
+          <!-- AJAX will insert document rows here -->
+        </ul>
       </div>
     </div>
   </div>
-  <script src="../js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const modalElement = document.getElementById('deleteDocumentModal');
+</div>
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const modalElement = document.getElementById('deleteDocumentModal');
 
-      if (modalElement) {
-        modalElement.addEventListener('shown.bs.modal', function() {
+    if (modalElement) {
+      modalElement.addEventListener('shown.bs.modal', function() {
 
-          loadDocuments();
-          modalElement.addEventListener('hidden.bs.modal', function() {
-            const searchInput = document.getElementById('modalSearch');
-            const list = document.getElementById('document-list');
+        loadDocuments();
+        modalElement.addEventListener('hidden.bs.modal', function() {
+          const searchInput = document.getElementById('modalSearch');
+          const list = document.getElementById('document-list');
 
-            if (searchInput) {
-              searchInput.value = '';
-            }
+          if (searchInput) {
+            searchInput.value = '';
+          }
 
-            if (allDocuments.length > 0 && list) {
-              // Re-render full list
-              list.innerHTML = '';
-              allDocuments.forEach(doc => {
-                const item = document.createElement('li');
-                item.className = 'list-group-item bg-secondary text-white mb-2';
+          if (allDocuments.length > 0 && list) {
+            // Re-render full list
+            list.innerHTML = '';
+            allDocuments.forEach(doc => {
+              const item = document.createElement('li');
+              item.className = 'list-group-item bg-secondary text-white mb-2';
 
-                item.innerHTML = `
+              item.innerHTML = `
         <div class="d-flex justify-content-between align-items-start flex-wrap">
           <div>
             <strong>${doc.document_name}</strong><br>
@@ -366,43 +461,43 @@ $view = $_GET['view'] ?? 'documents';
         </div>
       `;
 
-                list.appendChild(item);
-              });
-            }
-          });
-
+              list.appendChild(item);
+            });
+          }
         });
-      }
 
-      let allDocuments = []; // Global variable to store all docs
+      });
+    }
 
-      function loadDocuments() {
-        fetch('get_documents.php')
-          .then(response => response.json())
-          .then(data => {
-            allDocuments = data;
+    let allDocuments = []; // Global variable to store all docs
 
-            const list = document.getElementById('document-list');
-            const searchInput = document.getElementById('modalSearch');
-            list.innerHTML = '';
+    function loadDocuments() {
+      fetch('get_documents.php')
+        .then(response => response.json())
+        .then(data => {
+          allDocuments = data;
 
-            // Create list items function
-            const renderList = (docs) => {
-              list.innerHTML = ''; // Clear previous content
+          const list = document.getElementById('document-list');
+          const searchInput = document.getElementById('modalSearch');
+          list.innerHTML = '';
 
-              if (docs.length === 0) {
-                const empty = document.createElement('li');
-                empty.className = 'list-group-item  text-muted';
-                empty.textContent = 'Aucun document trouvé.';
-                list.appendChild(empty);
-                return;
-              }
+          // Create list items function
+          const renderList = (docs) => {
+            list.innerHTML = ''; // Clear previous content
 
-              docs.forEach(doc => {
-                const item = document.createElement('li');
-                item.className = 'list-group-item bg-secondary text-white mb-2';
+            if (docs.length === 0) {
+              const empty = document.createElement('li');
+              empty.className = 'list-group-item  text-muted';
+              empty.textContent = 'Aucun document trouvé.';
+              list.appendChild(empty);
+              return;
+            }
 
-                item.innerHTML = `
+            docs.forEach(doc => {
+              const item = document.createElement('li');
+              item.className = 'list-group-item bg-secondary text-white mb-2';
+
+              item.innerHTML = `
             <div class="d-flex justify-content-between align-items-start flex-wrap">
               <div>
                 <strong>${doc.document_name}</strong><br>
@@ -418,162 +513,223 @@ $view = $_GET['view'] ?? 'documents';
             </div>
           `;
 
-                list.appendChild(item);
-              });
-            };
+              list.appendChild(item);
+            });
+          };
 
-            renderList(allDocuments); // Initial display
+          renderList(allDocuments); // Initial display
 
-            // Attach search input listener only once
-            if (searchInput && !searchInput.dataset.listenerAttached) {
-              searchInput.addEventListener('input', () => {
-                const query = searchInput.value.trim().toLowerCase();
+          // Attach search input listener only once
+          if (searchInput && !searchInput.dataset.listenerAttached) {
+            searchInput.addEventListener('input', () => {
+              const query = searchInput.value.trim().toLowerCase();
 
-                const filtered = allDocuments.filter(doc =>
-                  doc.document_name.toLowerCase().includes(query) ||
-                  doc.file_path.toLowerCase().includes(query)
-                );
+              const filtered = allDocuments.filter(doc =>
+                doc.document_name.toLowerCase().includes(query) ||
+                doc.file_path.toLowerCase().includes(query)
+              );
 
-                renderList(filtered);
-              });
+              renderList(filtered);
+            });
 
-              // Prevent duplicate event listeners
-              searchInput.dataset.listenerAttached = 'true';
-            }
-          })
-          .catch(error => {
-            console.error('Erreur lors du chargement des documents:', error);
-          });
-      }
+            // Prevent duplicate event listeners
+            searchInput.dataset.listenerAttached = 'true';
+          }
+        })
+        .catch(error => {
+          console.error('Erreur lors du chargement des documents:', error);
+        });
+    }
 
-      window.deleteDocument = function(id, btn) {
-        if (!confirm('Confirmer la suppression du document ?')) return;
+    window.deleteDocument = function(id, btn) {
+      if (!confirm('Confirmer la suppression du document ?')) return;
 
-        fetch('delete_document.php', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'document_id=' + encodeURIComponent(id)
-          })
-          .then(response => response.text())
-          .then(result => {
-            if (result === 'success') {
-              // Remove from modal list
-              btn.closest('li').remove();
-
-
-              // Remove all corresponding rows from the main table
-              const rows = document.querySelectorAll(`#documentsTable tr[data-doc-id="${id}"]`);
-              rows.forEach(row => row.remove());
-
-              const feedback = document.getElementById('delete-feedback');
-              feedback.innerHTML = '<div class="alert alert-success">Document supprimé avec succès.</div>';
-
-              // Auto-hide after 3 seconds
-              setTimeout(() => {
-                feedback.innerHTML = '';
-              }, 3000);
-
-            } else {
-              feedback.innerHTML = '<div class="alert alert-danger">Erreur lors de la suppression.</div>';
-              setTimeout(() => {
-                feedback.innerHTML = '';
-              }, 3000);
-            }
-          });
-      };
+      fetch('delete_document.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: 'document_id=' + encodeURIComponent(id)
+        })
+        .then(response => response.text())
+        .then(result => {
+          if (result === 'success') {
+            // Remove from modal list
+            btn.closest('li').remove();
 
 
-    });
+            // Remove all corresponding rows from the main table
+            const rows = document.querySelectorAll(`#documentsTable tr[data-doc-id="${id}"]`);
+            rows.forEach(row => row.remove());
+
+            const feedback = document.getElementById('delete-feedback');
+            feedback.innerHTML = '<div class="alert alert-success">Document supprimé avec succès.</div>';
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+              feedback.innerHTML = '';
+            }, 3000);
+
+          } else {
+            feedback.innerHTML = '<div class="alert alert-danger">Erreur lors de la suppression.</div>';
+            setTimeout(() => {
+              feedback.innerHTML = '';
+            }, 3000);
+          }
+        });
+    };
+
+
+  });
 
 
 
 
-    document.addEventListener('DOMContentLoaded', function() {
-      const input = document.getElementById('searchDocument');
+  document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('searchDocument');
+    const tbody = document.getElementById('documentsTableBody');
+    const mainPagination = document.getElementById('mainPagination');
+    const paginationRow = document.getElementById('paginationRow');
+
+    function loadSearchResults(query = '', page = 1) {
       const tbody = document.getElementById('documentsTableBody');
-      const mainPagination = document.getElementById('mainPagination');
-      const paginationRow = document.getElementById('paginationRow');
+      const paginationContainer = document.querySelector('#mainPagination ul');
 
-      function loadSearchResults(query = '', page = 1) {
-        if (query === '') {
-          // Reset to default full view
-          window.location.reload();
-          return;
-        }
+      fetch(`search_documents.php?q=${encodeURIComponent(query)}&page=${page}`)
+        .then(response => response.json())
+        .then(data => {
+          tbody.innerHTML = data.html;
+          paginationContainer.innerHTML = data.pagination;
 
-        fetch(`search_documents.php?q=${encodeURIComponent(query)}&page=${page}`)
-          .then(response => response.text())
-          .then(html => {
-            tbody.innerHTML = html;
-            mainPagination.style.display = 'none'; // Hide dashboard pagination
-            attachPaginationHandlers();
-          })
-          .catch(error => {
-            console.error('Erreur AJAX lors de la recherche des documents :', error);
-          });
-      }
+          attachPaginationHandlers(); // Rebind links
+        })
+        .catch(error => {
+          console.error('Erreur AJAX lors de la recherche des documents :', error);
+        });
+    }
 
-      input.addEventListener('keyup', function() {
-        const query = input.value.trim();
 
+    input.addEventListener('keyup', function() {
+      const query = input.value.trim();
+
+      if (query.length > 0) {
         loadSearchResults(query, 1);
+      } else {
+        // fallback to full reload or refresh
+        window.location.href = window.location.pathname;
+      }
+    });
+
+    function attachPaginationHandlers() {
+      const searchLinks = document.querySelectorAll('.search-page-link');
+
+      searchLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const page = parseInt(this.dataset.page);
+          const query = document.getElementById('searchDocument').value.trim();
+          loadSearchResults(query, page);
+        });
       });
+    }
 
-      function attachPaginationHandlers() {
-        document.querySelectorAll('.search-page-link').forEach(link => {
-          link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = parseInt(this.dataset.page);
-            const query = input.value.trim();
-            loadSearchResults(query, page);
-          });
+
+
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const boardInput = document.getElementById('searchBoard');
+    const boardTbody = document.getElementById('boardsTableBody');
+    const paginationContainer = document.querySelector('#mainPagination ul');
+
+    function loadSearchBoards(query = '', page = 1) {
+      fetch(`search_boards.php?q=${encodeURIComponent(query)}&page=${page}`)
+        .then(res => res.json())
+        .then(data => {
+          boardTbody.innerHTML = data.html;
+          paginationContainer.innerHTML = data.pagination;
+          attachBoardPaginationHandlers();
+        })
+        .catch(error => console.error('Erreur AJAX lors de la recherche des cartes :', error));
+    }
+
+    function attachBoardPaginationHandlers() {
+      document.querySelectorAll('.page-link-nav').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const page = parseInt(this.dataset.page);
+          const query = boardInput.value.trim();
+          if (query.length > 0) {
+            loadSearchBoards(query, page);
+          } else {
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', 'boards');
+            url.searchParams.set('page', page);
+            window.location.href = url.toString();
+          }
         });
+      });
+    }
+
+    boardInput.addEventListener('input', () => {
+      const query = boardInput.value.trim();
+      if (query.length > 0) {
+        loadSearchBoards(query, 1);
+      } else {
+        window.location.href = '?view=boards';
       }
     });
 
+    attachBoardPaginationHandlers(); // For initial page load
+  });
 
-    document.addEventListener('DOMContentLoaded', function() {
-      const boardInput = document.getElementById('searchBoard');
-      const boardTbody = document.getElementById('boardsTableBody');
 
-      if (boardInput && boardTbody) {
-        boardInput.addEventListener('keyup', function() {
-          const query = boardInput.value;
+  document.addEventListener('DOMContentLoaded', function() {
+    const postInput = document.getElementById('searchPost');
+    const postTbody = document.getElementById('postsTableBody');
+    const paginationContainer = document.querySelector('#mainPagination ul');
 
-          fetch('search_boards.php?q=' + encodeURIComponent(query))
-            .then(response => response.text())
-            .then(html => {
-              boardTbody.innerHTML = html;
-            })
-            .catch(error => {
-              console.error('Erreur AJAX lors de la recherche des cartes :', error);
-            });
+    function loadSearchPosts(query = '', page = 1) {
+      fetch(`search_posts.php?q=${encodeURIComponent(query)}&page=${page}`)
+        .then(res => res.json())
+        .then(data => {
+          postTbody.innerHTML = data.html;
+          paginationContainer.innerHTML = data.pagination;
+          attachPostPaginationHandlers();
+        })
+        .catch(error => console.error('Erreur AJAX lors de la recherche des postes :', error));
+    }
+
+    function attachPostPaginationHandlers() {
+      document.querySelectorAll('.page-link-nav').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const page = parseInt(this.dataset.page);
+          const query = postInput.value.trim();
+          if (query.length > 0) {
+            loadSearchPosts(query, page);
+          } else {
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', 'posts');
+            url.searchParams.set('page', page);
+            window.location.href = url.toString();
+          }
         });
+      });
+    }
+
+    postInput.addEventListener('input', () => {
+      const query = postInput.value.trim();
+      if (query.length > 0) {
+        loadSearchPosts(query, 1);
+      } else {
+        window.location.href = '?view=posts';
       }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-      const postInput = document.getElementById('searchPost');
-      const postTbody = document.getElementById('postsTableBody');
-
-      if (postInput && postTbody) {
-        postInput.addEventListener('keyup', function() {
-          const query = postInput.value;
-
-          fetch('search_posts.php?q=' + encodeURIComponent(query))
-            .then(response => response.text())
-            .then(html => {
-              postTbody.innerHTML = html;
-            })
-            .catch(error => {
-              console.error('Erreur AJAX lors de la recherche des postes :', error);
-            });
-        });
-      }
-    });
-  </script>
+    attachPostPaginationHandlers();
+  });
+</script>
 
 
 

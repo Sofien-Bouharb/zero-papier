@@ -1,7 +1,9 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
-$_SESSION['LAST_ACTIVITY'] = time(); // Update session timestamp
+$_SESSION['LAST_ACTIVITY'] = time();
+
+header('Content-Type: application/json'); // JSON output
 
 // Get parameters
 $q = $_GET['q'] ?? '';
@@ -9,7 +11,7 @@ $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] 
 $limit = isset($_GET['limit']) && is_numeric($_GET['limit']) ? (int) $_GET['limit'] : 10;
 $offset = ($page - 1) * $limit;
 
-// Split search into terms
+// Prepare search conditions
 $terms = preg_split('/\s+/', trim($q));
 $conditions = [];
 $params = [];
@@ -28,7 +30,7 @@ foreach ($terms as $index => $word) {
 
 $whereClause = implode(' AND ', $conditions);
 
-// ---------- COUNT QUERY ----------
+// --- COUNT QUERY ---
 $countSql = "
     SELECT COUNT(*) FROM documents_search.board_post_documents bp
     JOIN documents_search.documents d ON bp.document_id = d.document_id
@@ -50,7 +52,7 @@ if (!empty($whereClause)) {
 
 $totalPages = ceil($totalRows / $limit);
 
-// ---------- DATA QUERY ----------
+// --- DATA QUERY ---
 $dataSql = "
     SELECT d.document_id, d.document_name, d.file_path,
            b.board_name, b.board_index_id,
@@ -79,8 +81,12 @@ $dataStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $dataStmt->execute();
 $rows = $dataStmt->fetchAll();
 
-// ---------- OUTPUT HTML ----------
-if (count($rows) > 0):
+// --- BUFFER HTML OUTPUT ---
+
+// 1. Table rows
+ob_start();
+
+if (count($rows) > 0) {
     foreach ($rows as $row): ?>
         <tr data-doc-id="<?= $row['document_id'] ?>">
             <td><?= htmlspecialchars($row['document_name']) ?></td>
@@ -95,27 +101,61 @@ if (count($rows) > 0):
                 <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');">🗑️</a>
             </td>
         </tr>
-    <?php endforeach; ?>
+    <?php endforeach;
+} else {
+    echo '<tr><td colspan="5" class="text-center">Aucun résultat trouvé.</td></tr>';
+}
 
-    <?php if ($totalPages > 1): ?>
+$tableHtml = ob_get_clean();
 
-        <nav id="searchPagination">
-            <ul class=" mt-3 pagination justify-content-center pagination-sm bg-transparent ">
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <li class="page-item <?= $i == $page ? 'active' : '' ?>">
-                        <a href="#" class="page-link search-page-link"
-                            data-page="<?= $i ?>"
-                            data-query="<?= htmlspecialchars($q) ?>">
-                            <?= $i ?>
-                        </a>
-                    </li>
-                <?php endfor; ?>
-            </ul>
-        </nav>
-    <?php endif; ?>
+// 2. Pagination bar
+ob_start();
+if ($totalPages > 1): ?>
+    <nav id="searchPagination">
+        <ul class="mt-3 pagination justify-content-center pagination-sm bg-transparent">
+            <?php
+            $range = 2;
 
-<?php else: ?>
-    <tr>
-        <td colspan="5" class="text-center">Aucun résultat trouvé.</td>
-    </tr>
-<?php endif; ?>
+            if ($page > 1): ?>
+                <li class="page-item">
+                    <a href="#" class="page-link search-page-link" data-page="<?= $page - 1 ?>" data-query="<?= htmlspecialchars($q) ?>">«</a>
+                </li>
+            <?php endif; ?>
+
+            <?php if ($page > $range + 1): ?>
+                <li class="page-item">
+                    <a href="#" class="page-link search-page-link" data-page="1" data-query="<?= htmlspecialchars($q) ?>">1</a>
+                </li>
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            <?php endif; ?>
+
+            <?php for ($i = max(1, $page - $range); $i <= min($totalPages, $page + $range); $i++): ?>
+                <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                    <a href="#" class="page-link search-page-link" data-page="<?= $i ?>" data-query="<?= htmlspecialchars($q) ?>"><?= $i ?></a>
+                </li>
+            <?php endfor; ?>
+
+            <?php if ($page < $totalPages - $range): ?>
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                <li class="page-item">
+                    <a href="#" class="page-link search-page-link" data-page="<?= $totalPages ?>" data-query="<?= htmlspecialchars($q) ?>"><?= $totalPages ?></a>
+                </li>
+            <?php endif; ?>
+
+            <?php if ($page < $totalPages): ?>
+                <li class="page-item">
+                    <a href="#" class="page-link search-page-link" data-page="<?= $page + 1 ?>" data-query="<?= htmlspecialchars($q) ?>">»</a>
+                </li>
+            <?php endif; ?>
+        </ul>
+    </nav>
+<?php
+endif;
+
+$paginationHtml = ob_get_clean();
+
+// --- OUTPUT JSON ---
+echo json_encode([
+    'html' => $tableHtml,
+    'pagination' => $paginationHtml
+]);
