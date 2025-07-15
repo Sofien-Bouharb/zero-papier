@@ -425,120 +425,54 @@ $view = $_GET['view'] ?? 'documents';
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const modalElement = document.getElementById('deleteDocumentModal');
+    const modalSearch = document.getElementById('modalSearch');
+    const documentList = document.getElementById('document-list');
+    let allDocuments = [];
 
     if (modalElement) {
       modalElement.addEventListener('shown.bs.modal', function() {
+        loadDocumentsModal();
 
-        loadDocuments();
         modalElement.addEventListener('hidden.bs.modal', function() {
-          const searchInput = document.getElementById('modalSearch');
-          const list = document.getElementById('document-list');
-
-          if (searchInput) {
-            searchInput.value = '';
+          if (modalSearch) {
+            modalSearch.value = '';
           }
-
-          if (allDocuments.length > 0 && list) {
-            // Re-render full list
-            list.innerHTML = '';
-            allDocuments.forEach(doc => {
-              const item = document.createElement('li');
-              item.className = 'list-group-item bg-secondary text-white mb-2';
-
-              item.innerHTML = `
-        <div class="d-flex justify-content-between align-items-start flex-wrap">
-          <div>
-            <strong>${doc.document_name}</strong><br>
-            <small>
-              📄 <a href="../uploads/${doc.file_path}" target="_blank" class="text-info text-decoration-underline">${doc.file_path}</a>
-            </small>
-          </div>
-          <div class="mt-2 mt-sm-0">
-            <a href="edit_document.php?id=${doc.document_id}" class="btn btn-sm btn-warning me-2" title="Modifier ce document">Modifier document</a>
-            <a href="add_association.php?id=${doc.document_id}" class="btn btn-sm btn-info me-2" title="Ajouter des associations">Ajouter associations</a>
-            <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.document_id}, this)" title="Supprimer ce document complétement">Supprimer</button>
-          </div>
-        </div>
-      `;
-
-              list.appendChild(item);
-            });
-          }
+          documentList.innerHTML = '';
         });
-
       });
     }
 
-    let allDocuments = []; // Global variable to store all docs
-
-    function loadDocuments() {
-      fetch('get_documents.php')
+    function loadDocumentsModal(query = '', page = 1) {
+      fetch(`get_documents.php?q=${encodeURIComponent(query)}&page=${page}`)
         .then(response => response.json())
         .then(data => {
-          allDocuments = data;
-
-          const list = document.getElementById('document-list');
-          const searchInput = document.getElementById('modalSearch');
-          list.innerHTML = '';
-
-          // Create list items function
-          const renderList = (docs) => {
-            list.innerHTML = ''; // Clear previous content
-
-            if (docs.length === 0) {
-              const empty = document.createElement('li');
-              empty.className = 'list-group-item  text-muted';
-              empty.textContent = 'Aucun document trouvé.';
-              list.appendChild(empty);
-              return;
-            }
-
-            docs.forEach(doc => {
-              const item = document.createElement('li');
-              item.className = 'list-group-item bg-secondary text-white mb-2';
-
-              item.innerHTML = `
-            <div class="d-flex justify-content-between align-items-start flex-wrap">
-              <div>
-                <strong>${doc.document_name}</strong><br>
-                <small>
-                  📄 <a href="../uploads/${doc.file_path}" target="_blank" class="text-info text-decoration-underline">${doc.file_path}</a>
-                </small>
-              </div>
-              <div class="mt-2 mt-sm-0">
-                <a href="edit_document.php?id=${doc.document_id}" class="btn btn-sm btn-warning me-2" title="Modifier ce document">Modifier document</a>
-                <a href="add_association.php?id=${doc.document_id}" class="btn btn-sm btn-info me-2" title="Ajouter des associations">Ajouter associations</a>
-                <button class="btn btn-sm btn-danger" onclick="deleteDocument(${doc.document_id}, this)" title="Supprimer ce document complétement">Supprimer</button>
-              </div>
-            </div>
-          `;
-
-              list.appendChild(item);
-            });
-          };
-
-          renderList(allDocuments); // Initial display
-
-          // Attach search input listener only once
-          if (searchInput && !searchInput.dataset.listenerAttached) {
-            searchInput.addEventListener('input', () => {
-              const query = searchInput.value.trim().toLowerCase();
-
-              const filtered = allDocuments.filter(doc =>
-                doc.document_name.toLowerCase().includes(query) ||
-                doc.file_path.toLowerCase().includes(query)
-              );
-
-              renderList(filtered);
-            });
-
-            // Prevent duplicate event listeners
-            searchInput.dataset.listenerAttached = 'true';
-          }
+          documentList.innerHTML = data.html + data.pagination;
+          attachModalPaginationHandlers();
         })
         .catch(error => {
-          console.error('Erreur lors du chargement des documents:', error);
+          console.error('Erreur AJAX lors du chargement des documents :', error);
         });
+    }
+
+    function attachModalPaginationHandlers() {
+      const links = document.querySelectorAll('.modal-page-link');
+
+      links.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const page = parseInt(this.dataset.page);
+          const query = modalSearch.value.trim();
+          loadDocumentsModal(query, page);
+        });
+      });
+    }
+
+    if (modalSearch && !modalSearch.dataset.listenerAttached) {
+      modalSearch.addEventListener('input', () => {
+        const query = modalSearch.value.trim();
+        loadDocumentsModal(query, 1);
+      });
+      modalSearch.dataset.listenerAttached = 'true';
     }
 
     window.deleteDocument = function(id, btn) {
@@ -553,23 +487,15 @@ $view = $_GET['view'] ?? 'documents';
         })
         .then(response => response.text())
         .then(result => {
+          const feedback = document.getElementById('delete-feedback');
           if (result === 'success') {
-            // Remove from modal list
             btn.closest('li').remove();
-
-
-            // Remove all corresponding rows from the main table
             const rows = document.querySelectorAll(`#documentsTable tr[data-doc-id="${id}"]`);
             rows.forEach(row => row.remove());
-
-            const feedback = document.getElementById('delete-feedback');
             feedback.innerHTML = '<div class="alert alert-success">Document supprimé avec succès.</div>';
-
-            // Auto-hide after 3 seconds
             setTimeout(() => {
               feedback.innerHTML = '';
             }, 3000);
-
           } else {
             feedback.innerHTML = '<div class="alert alert-danger">Erreur lors de la suppression.</div>';
             setTimeout(() => {
@@ -578,8 +504,6 @@ $view = $_GET['view'] ?? 'documents';
           }
         });
     };
-
-
   });
 
 

@@ -47,7 +47,14 @@ if (!empty($whereClause)) {
     $countStmt->execute();
     $totalRows = $countStmt->fetchColumn();
 } else {
-    $totalRows = 0;
+    $countSql = "
+        SELECT COUNT(*) FROM documents_search.board_post_documents bp
+        JOIN documents_search.documents d ON bp.document_id = d.document_id
+        JOIN documents_search.boards b ON bp.board_index_id = b.board_index_id
+        JOIN documents_search.workers w ON bp.step_number = w.step_number
+    ";
+    $countStmt = $pdo->query($countSql);
+    $totalRows = $countStmt->fetchColumn();
 }
 
 $totalPages = ceil($totalRows / $limit);
