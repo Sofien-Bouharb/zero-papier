@@ -1,10 +1,49 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
+
+
+require_once '../includes/helpers.php';
 $_SESSION['LAST_ACTIVITY'] = time();
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (isset($_SESSION['error_message'])):
+?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['error_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['error_message']);
+endif; ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['success_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['success_message']);
+endif; ?>
+
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-dismiss alerts after 4 seconds
+    setTimeout(function() {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close(); // Triggers fade out
+        }
+    }, 4000); // 4000ms = 4 seconds
+</script>
+
+
+
+
+
+<?php
 
 if (!isset($_GET['step_number'])) {
-    die("Aucun poste spécifié.");
+    redirect_with_error("Aucun poste spécifié.");
 }
 
 $step_number = (int) $_GET['step_number'];
@@ -18,7 +57,8 @@ $stmt->execute(['step' => $step_number]);
 $post = $stmt->fetch();
 
 if (!$post) {
-    die("Poste introuvable.");
+
+    redirect_with_error("Poste introuvable.");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -28,8 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$hostname || !$ip_address || !$ilot_id) {
         $error = "Tous les champs sont obligatoires.";
+        redirect_with_error($error);
     } elseif (!filter_var($ip_address, FILTER_VALIDATE_IP)) {
         $error = "L'adresse IP n'est pas valide.";
+        redirect_with_error($error);
     } else {
 
         // Check for uniqueness of hostname and ip_address (excluding current post)
@@ -46,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($conflict->fetchColumn() > 0) {
             $error = "Le nom d'hôte ou l'adresse IP est déjà utilisé(e) par un autre poste.";
+            redirect_with_error($error);
         } else {
             $update = $pdo->prepare("
         UPDATE documents_search.workers

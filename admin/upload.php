@@ -1,12 +1,51 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
-$_SESSION['LAST_ACTIVITY'] = time();
+require_once '../includes/helpers.php';
+$_SESSION['LAST_ACTIVITY'] = time(); ?>
+
+
+
+<?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (isset($_SESSION['error_message'])):
+?>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <?= htmlspecialchars($_SESSION['error_message']) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  </div>
+<?php unset($_SESSION['error_message']);
+endif; ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <?= htmlspecialchars($_SESSION['success_message']) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  </div>
+<?php unset($_SESSION['success_message']);
+endif; ?>
+
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-dismiss alerts after 4 seconds
+  setTimeout(function() {
+    const alert = document.querySelector('.alert');
+    if (alert) {
+      const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+      bsAlert.close(); // Triggers fade out
+    }
+  }, 4000); // 4000ms = 4 seconds
+</script>
+
+
+
+<?php
 // Récupération des postes et cartes et îlots
 $workers = $pdo->query("
-  SELECT step_number, hostname, ilot_id 
-  FROM documents_search.workers 
-  ORDER BY hostname
+SELECT step_number, hostname, ilot_id
+FROM documents_search.workers
+ORDER BY hostname
 ")->fetchAll();
 
 $boards = $pdo->query("SELECT board_index_id, board_name FROM documents_search.boards ORDER BY board_name, board_index_id")->fetchAll();
@@ -26,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $mappings = json_decode($_POST['mappings'] ?? '[]', true);
 
   if (!$document_name || !$file || $file['error'] !== 0 || empty($mappings)) {
-    die("Tous les champs sont obligatoires, et vous devez sélectionner au moins une association poste-carte.");
+    redirect_with_error("Tous les champs sont obligatoires, et vous devez sélectionner au moins une association poste-carte.");
   }
 
   // Get original filename (e.g., xyz.pdf), sanitize it
@@ -38,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $check->execute(['path' => $filename]);
 
   if ($check->fetchColumn() > 0) {
-    die("Un fichier avec ce file path existe déjà. Veuillez renommer le fichier avant de l’uploader.");
+    redirect_with_error("Un fichier avec ce file path existe déjà.");
   }
 
   $upload_dir = '../uploads/';
@@ -146,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <ul id="mappingList" class="mt-3"></ul>
 
       <button type="submit" class="btn btn-primary my-3 ">📤 Enregistrer</button>
-      <a href="dashboard.php" class="btn btn-secondary ms-2 my-3">Retour</a>
+      <a href="dashboard.php" class="btn btn-secondary ms-2 my-3">Annuler</a>
     </form>
 
   </div>

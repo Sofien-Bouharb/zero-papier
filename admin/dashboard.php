@@ -269,7 +269,7 @@ $view = $_GET['view'] ?? 'documents';
 
 <?php else: // default view = documents 
 ?>
-  <h3 class="my-4">Liste des associations documents-postes-codes</h3>
+  <h3 class="mb-3">Liste des associations documents-postes-codes</h3>
   <div class="mb-4 d-flex justify-content-center">
     <input type="text" id="searchDocument" class="form-control w-50" placeholder="🔍 Rechercher un document, un poste, une carte..." autofocus>
   </div>

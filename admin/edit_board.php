@@ -1,10 +1,52 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
+require_once '../includes/helpers.php';
 $_SESSION['LAST_ACTIVITY'] = time();
 
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (isset($_SESSION['error_message'])):
+?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['error_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['error_message']);
+endif; ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['success_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['success_message']);
+endif; ?>
+
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-dismiss alerts after 4 seconds
+    setTimeout(function() {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close(); // Triggers fade out
+        }
+    }, 4000); // 4000ms = 4 seconds
+</script>
+<?php
+
+
+
+
+
+
+
+
+
+
 if (!isset($_GET['board_index_id'])) {
-    die("Aucune carte spécifiée.");
+    redirect_with_error("Aucune carte spécifiée.");
 }
 
 $board_index_id = (int) $_GET['board_index_id'];
@@ -15,7 +57,7 @@ $stmt->execute(['id' => $board_index_id]);
 $board = $stmt->fetch();
 
 if (!$board) {
-    die("Carte introuvable.");
+    redirect_with_error("Carte introuvable.");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -29,32 +71,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$board_name || !$board_index_id) {
         $error = "Tous les champs obligatoires doivent être remplis.";
+        redirect_with_error($error);
     } else {
-        $update = $pdo->prepare("
-      UPDATE documents_search.boards
-      SET board_index_id= :id_b,
-          board_name = :name,
-          repere_dm = :repere,
-          designation = :des,
-          ref_cie_actia = :cie,
-          ref_pcb = :pcb,
-          clicher_pcb = :clicher
-      WHERE board_index_id = :id
-    ");
 
-        $update->execute([
-            'id_b' => $board_index,
-            'name' => $board_name,
-            'repere' => $repere_dm,
-            'des' => $designation,
-            'cie' => $ref_cie,
-            'pcb' => $ref_pcb,
-            'clicher' => $clicher_pcb,
-            'id' => $board_index_id
-        ]);
 
-        header("Location: dashboard.php?view=boards&success=1");
-        exit();
+
+        $check = $pdo->prepare("
+  SELECT COUNT(*) FROM documents_search.boards 
+  WHERE board_index_id = :id");
+        $check->execute(['id' =>  $_POST['board_index_id']]);
+
+        if ($check->fetchColumn() > 0) {
+            redirect_with_error("Ce code index existe déjà.");
+        } else {
+
+
+
+            $update = $pdo->prepare("
+UPDATE documents_search.boards
+SET board_index_id= :id_b,
+board_name = :name,
+repere_dm = :repere,
+designation = :des,
+ref_cie_actia = :cie,
+ref_pcb = :pcb,
+clicher_pcb = :clicher
+WHERE board_index_id = :id
+");
+
+            $update->execute([
+                'id_b' => $board_index,
+                'name' => $board_name,
+                'repere' => $repere_dm,
+                'des' => $designation,
+                'cie' => $ref_cie,
+                'pcb' => $ref_pcb,
+                'clicher' => $clicher_pcb,
+                'id' => $board_index_id
+            ]);
+
+            header("Location: dashboard.php?view=boards&success=1");
+            exit();
+        }
     }
 }
 ?>

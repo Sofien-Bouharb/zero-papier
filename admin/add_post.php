@@ -1,7 +1,39 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
+require_once '../includes/helpers.php';
+$_SESSION['LAST_ACTIVITY'] = time();
+if (session_status() === PHP_SESSION_NONE) session_start();
 
+if (isset($_SESSION['error_message'])):
+?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['error_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['error_message']);
+endif; ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['success_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['success_message']);
+endif; ?>
+
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-dismiss alerts after 4 seconds
+    setTimeout(function() {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close(); // Triggers fade out
+        }
+    }, 4000); // 4000ms = 4 seconds
+</script>
+<?php
 $ilot_stmt = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER BY ilot_name");
 $ilots = $ilot_stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -13,23 +45,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$hostname || !$ip) {
         $error = "Tous les champs sont obligatoires.";
+        redirect_with_error($error);
     } elseif (!filter_var($ip, FILTER_VALIDATE_IP)) {
         $error = "Adresse IP invalide.";
+        redirect_with_error($error);
     } else {
         // Vérifier unicité du hostname et de l'IP
         $check = $pdo->prepare("
-  SELECT COUNT(*) FROM documents_search.workers 
-  WHERE hostname = :hostname OR ip_address = :ip
+SELECT COUNT(*) FROM documents_search.workers
+WHERE hostname = :hostname OR ip_address = :ip
 ");
         $check->execute(['hostname' => $hostname, 'ip' => $ip]);
 
         if ($check->fetchColumn() > 0) {
             $error = "Ce nom de poste ou cette adresse IP existe déjà.";
+            redirect_with_error($error);
         } else {
             $stmt = $pdo->prepare("
-                INSERT INTO documents_search.workers (hostname, ip_address, ilot_id) 
-                VALUES (:hostname, :ip, :ilot_id)
-            ");
+INSERT INTO documents_search.workers (hostname, ip_address, ilot_id)
+VALUES (:hostname, :ip, :ilot_id)
+");
             $stmt->execute([
                 'hostname' => $hostname,
                 'ip' => $ip,

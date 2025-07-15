@@ -1,7 +1,41 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
+require_once '../includes/helpers.php';
 $_SESSION['LAST_ACTIVITY'] = time();
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (isset($_SESSION['error_message'])):
+?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['error_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['error_message']);
+endif; ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['success_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['success_message']);
+endif; ?>
+
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-dismiss alerts after 4 seconds
+    setTimeout(function() {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close(); // Triggers fade out
+        }
+    }, 4000); // 4000ms = 4 seconds
+</script>
+
+
+<?php
 // Check if ID is passed
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_document'])) {
     $document_id = intval($_POST['document_id']);
@@ -13,7 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_document'])) {
     $existing = $stmt->fetch();
 
     if (!$existing) {
-        die("Document introuvable.");
+
+        redirect_with_error("Document introuvable.");
     }
 
     $file_path = $existing['file_path'];
@@ -24,19 +59,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_document'])) {
         $newFileName = basename($_FILES['document_file']['name']);
         $targetPath = $uploadDir . $newFileName;
 
+        // Check for duplicate file path (excluding current document)
+        $check = $pdo->prepare("
+SELECT COUNT(*) FROM documents_search.documents
+WHERE file_path = ? AND document_id != ?
+");
+        $check->execute([$newFileName, $document_id]);
+
+        if ($check->fetchColumn() > 0) {
+            redirect_with_error("Un autre document utilise déjà ce file path. Veuillez renommer le fichier.");
+            $_SESSION['error_message'] = "Un autre document utilise déjà ce nom de fichier. Veuillez renommer le fichier.";
+            $_SESSION['old_input'] = $_POST;
+            header("Location: edit_document.php?id=" . $document_id);
+            exit();
+        }
+
         if (move_uploaded_file($_FILES['document_file']['tmp_name'], $targetPath)) {
             // Delete old file if it's different
             if ($existing['file_path'] !== $newFileName) {
                 $oldFile = '../uploads/' . $existing['file_path'];
                 if (file_exists($oldFile)) {
-                    unlink($oldFile); // delete the old file
+                    unlink($oldFile);
                 }
             }
 
-            // Update new file path
             $file_path = $newFileName;
         } else {
-            $error = "Erreur lors du téléchargement du fichier.";
+            redirect_with_error("Erreur lors du téléchargement du fichier.");
+            $_SESSION['error_message'] = "Erreur lors du téléchargement du fichier.";
+            $_SESSION['old_input'] = $_POST;
+            header("Location: edit_document.php?id=" . $document_id);
+            exit();
         }
     }
 
@@ -56,7 +109,7 @@ $stmt->execute([$document_id]);
 $doc = $stmt->fetch();
 
 if (!$doc) {
-    die("Document introuvable.");
+    redirect_with_error("Document introuvable.");
 }
 ?>
 

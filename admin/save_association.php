@@ -1,7 +1,39 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
+require_once '../includes/helpers.php';
 $_SESSION['LAST_ACTIVITY'] = time();
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (isset($_SESSION['error_message'])):
+?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['error_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['error_message']);
+endif; ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_SESSION['success_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['success_message']);
+endif; ?>
+
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-dismiss alerts after 4 seconds
+    setTimeout(function() {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close(); // Triggers fade out
+        }
+    }, 4000); // 4000ms = 4 seconds
+</script>
+<?php
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: dashboard.php?view=documents");
@@ -12,7 +44,8 @@ $document_id = intval($_POST['document_id'] ?? 0);
 $mappings = json_decode($_POST['mappings'] ?? '[]', true);
 
 if ($document_id <= 0 || empty($mappings)) {
-    die("Paramètres invalides ou aucune association à enregistrer.");
+
+    redirect_with_error("Paramètres invalides ou aucune association à enregistrer.");
 }
 
 $inserted = 0;
@@ -55,4 +88,3 @@ foreach ($mappings as $map) {
 
 header("Location: dashboard.php?view=documents&success=added_$inserted");
 exit();
-    
