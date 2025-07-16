@@ -128,9 +128,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <title>Téléverser un document</title>
   <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <style>
+    body {
+
+      background-color: #eaeaea;
+    }
+
+    h2 {
+      color: #000;
+      margin: 0;
+      padding: 0;
+    }
+
+    label {
+      color: #000;
+      font-weight: bold;
+    }
+  </style>
 </head>
 
-<body class="bg-dark text-light">
+<body>
   <div class="container mt-5">
     <h2>Ajouter un document PDF</h2>
     <form method="POST" enctype="multipart/form-data" class="mt-4">
@@ -167,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
       <div class="mb-3">
         <label class="form-label">Sélectionner les cartes à associer :</label>
-        <div id="board_checkboxes" class="form-control bg-dark text-light" style="max-height: 200px; overflow-y: auto;">
+        <div id="board_checkboxes" class="form-control text-light" style="max-height: 200px; overflow-y: auto; background-color: #d1d2d5;">
           <?php foreach ($boards as $b): ?>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" value="<?= $b['board_index_id'] ?>" id="board<?= $b['board_index_id'] ?>">
@@ -179,13 +196,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
       </div>
 
-      <button type="button" class="btn btn-info" onclick="addMapping()">➕ Ajouter l'association</button>
+      <button type="button" class="btn" onclick="addMapping()" style="background-color:#2d91ae; color:#000;">➕ Ajouter l'association</button>
       <input type="hidden" name="mappings" id="mappingsInput">
 
       <ul id="mappingList" class="mt-3"></ul>
 
-      <button type="submit" class="btn btn-primary my-3 ">📤 Enregistrer</button>
-      <a href="dashboard.php" class="btn btn-secondary ms-2 my-3">Annuler</a>
+      <button type="submit" class="btn btn-success my-3 ">📤 Ajouter</button>
+      <a href="dashboard.php" class="btn btn ms-2 my-3" style="background-color:#747e87; color:#000;">Annuler</a>
     </form>
 
   </div>

@@ -50,19 +50,19 @@ if (count($documents) === 0): ?>
     <li class="list-group-item text-muted">Aucun document trouvé.</li>
     <?php else:
     foreach ($documents as $doc): ?>
-        <li class="list-group-item bg-secondary text-white mb-2">
+        <li class="list-group-item text-black mb-2" style="background-color: #d1d2d5">
             <div class="d-flex justify-content-between align-items-start flex-wrap">
                 <div>
                     <strong><?= htmlspecialchars($doc['document_name']) ?></strong><br>
                     <small>
-                        📄 <a href="../uploads/<?= urlencode($doc['file_path']) ?>" target="_blank" class="text-info text-decoration-underline">
+                        📄 <a href="../uploads/<?= urlencode($doc['file_path']) ?>" target="_blank" class=" text-decoration-underline">
                             <?= htmlspecialchars($doc['file_path']) ?>
                         </a>
                     </small>
                 </div>
                 <div class="mt-2 mt-sm-0">
-                    <a href="edit_document.php?id=<?= $doc['document_id'] ?>" class="btn btn-sm btn-warning me-2">Modifier document</a>
-                    <a href="add_association.php?id=<?= $doc['document_id'] ?>" class="btn btn-sm btn-info me-2">Ajouter associations</a>
+                    <a href="edit_document.php?id=<?= $doc['document_id'] ?>" class="btn btn-sm me-2" style="background-color: #747e87; color:#000;">Modifier document</a>
+                    <a href="add_association.php?id=<?= $doc['document_id'] ?>" class="btn btn-sm me-2" style="background-color: #747e87; color:#000;">Ajouter associations</a>
                     <button class="btn btn-sm btn-danger" onclick="deleteDocument(<?= $doc['document_id'] ?>, this)">Supprimer</button>
                 </div>
             </div>

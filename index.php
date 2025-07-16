@@ -16,41 +16,36 @@ if (isset($_SESSION['admin_id'])) {
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <style>
     body {
-      background-color: #0f1218;
-      color: #33d6e6;
+      background-color: #eaeaea;
+      color: #ffffff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-image: url('../assets/bg2.avif');
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-      background-attachment: fixed;
     }
 
     .login-container {
-      background: #121820;
+
       padding: 2rem;
       border-radius: 12px;
-      box-shadow: 0 0 6px #1da8b9cc;
+      box-shadow: 0 0 6px #bdd284;
       width: 320px;
     }
 
     h2 {
       text-align: center;
       margin-bottom: 1.5rem;
-      color: #33d6e6;
+      color: #383131ff;
     }
 
     label {
-      color: #28a5b2;
+      color: #000;
     }
 
     input[type="text"],
     input[type="password"] {
-      background: #0a0f14;
+      background: #ffffff;
       width: 100%;
       border: 1px solid #28a5b2;
       color: #33d6e6;
@@ -63,15 +58,15 @@ if (isset($_SESSION['admin_id'])) {
     input[type="password"]:focus {
       outline: none;
       border-color: #33d6e6;
-      background: #071017;
+
     }
 
     button {
       display: block;
       width: 100%;
-      background-color: #33d6e6;
+      background-color: #bdd284;
       border: none;
-      color: #0a0f14;
+      color: #000;
       font-weight: bold;
       padding: 0.5rem 0;
       border-radius: 8px;

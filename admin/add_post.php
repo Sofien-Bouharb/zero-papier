@@ -84,9 +84,31 @@ VALUES (:hostname, :ip, :ilot_id)
     <meta charset="UTF-8">
     <title>Ajouter un poste</title>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #eaeaea;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+
+        h2 {
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        label {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
-<body class="bg-dark text-light p-4">
+<body class="p-4">
 
     <div class="container">
         <h2 class="mb-4">📤 Ajouter un nouveau poste</h2>
@@ -116,8 +138,8 @@ VALUES (:hostname, :ip, :ilot_id)
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-primary">Ajouter</button>
-            <a href="dashboard.php?view=posts" class="btn btn-secondary ms-2">Annuler</a>
+            <button type="submit" class="btn btn-success">Ajouter</button>
+            <a href="dashboard.php?view=posts" class="btn ms-2" style="background-color: #747e87; color:#000;">Annuler</a>
         </form>
     </div>
 

@@ -86,13 +86,35 @@
         <meta charset="UTF-8">
         <title>Ajouter des associations</title>
         <link rel="stylesheet" href="../css/bootstrap.min.css">
+        <style>
+            body {
+                background-color: #eaeaea;
+                color: #ffffff;
+            }
+
+            .container {
+                max-width: 600px;
+                margin-top: 50px;
+            }
+
+            h2 {
+                color: #000;
+                margin: 0;
+                padding: 0;
+            }
+
+            label {
+                color: #000;
+                font-weight: bold;
+            }
+        </style>
     </head>
 
-    <body class="bg-dark text-light">
+    <body>
         <div class="container mt-5">
             <h2>Ajouter des associations pour :</h2>
-            <h4 class="mt-3 text-warning"><?= htmlspecialchars($document['document_name']) . " --- " . htmlspecialchars($document['file_path']) ?></h4>
-            <p class="text-muted">Fichier : <?= htmlspecialchars($document['file_path']) ?></p>
+            <h4 class="mt-3 text-success"><?= htmlspecialchars($document['document_name']) ?></h4>
+            <p class="text-muted">File path : <?= htmlspecialchars($document['file_path']) ?></p>
 
             <form method="POST" action="save_association.php" class="mt-4">
                 <input type="hidden" name="document_id" value="<?= $document_id ?>">
@@ -123,19 +145,19 @@
                 <!-- Boards Checklist -->
                 <div class="mb-3">
                     <label class="form-label">Sélectionner les cartes à associer :</label>
-                    <div id="board_checkboxes" class="form-control bg-dark text-light" style="max-height: 200px; overflow-y: auto;">
+                    <div id="board_checkboxes" class="form-control text-light " style="max-height: 200px; overflow-y: auto; background-color: #d1d2d5;">
                         <p class="text-muted">Sélectionnez d’abord un poste.</p>
                     </div>
                 </div>
 
 
-                <button type="button" class="btn btn-info" onclick="addMapping()">➕ Ajouter l'association</button>
+                <button type="button" class="btn" onclick="addMapping()" style="background-color:#2d91ae; color:#000;">➕ Ajouter l'association</button>
                 <input type="hidden" name="mappings" id="mappingsInput">
 
                 <ul id="mappingList" class="mt-3"></ul>
 
-                <button type="submit" class="btn btn-primary my-3">✅ Enregistrer les associations</button>
-                <a href="dashboard.php" class="btn btn-secondary ms-2 my-3">Retour</a>
+                <button type="submit" class="btn btn-success my-3">💾 Enregistrer les associations</button>
+                <a href="dashboard.php" class="btn  ms-2 my-3" style="background-color:#747e87; color:#000;">Retour</a>
             </form>
         </div>
 

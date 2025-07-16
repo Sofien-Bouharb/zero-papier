@@ -120,9 +120,32 @@ if (!$doc) {
     <meta charset="UTF-8">
     <title>Modifier le document</title>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
+
+    <style>
+        body {
+            background-color: #eaeaea;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+
+        h2 {
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        label {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
-<body class="bg-dark text-light">
+<body>
 
     <div class="container mt-5">
         <h2 class="mb-4">📝 Modifier le document</h2>
@@ -148,8 +171,8 @@ if (!$doc) {
                 <a href="../uploads/<?= urlencode($doc['file_path']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">📄 Voir le document</a>
             </div>
 
-            <button type="submit" name="update_document" class="btn btn-primary">✅ Enregistrer</button>
-            <a href="dashboard.php" class="btn btn-secondary">↩️ Retour</a>
+            <button type="submit" name="update_document" class="btn btn-success">💾 Enregistrer</button>
+            <a href="dashboard.php" class="btn " style="background-color:#747e87; color:#000;"> Retour</a>
         </form>
     </div>
 

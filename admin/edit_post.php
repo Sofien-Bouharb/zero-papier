@@ -116,9 +116,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Modifier un poste</title>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #eaeaea;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+
+        h2 {
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        label {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
-<body class="bg-dark text-light">
+<body>
     <div class="container mt-5">
         <h2>Modifier le poste #<?= htmlspecialchars($step_number) ?></h2>
 
@@ -148,8 +170,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
-            <a href="dashboard.php?view=posts" class="btn btn-secondary ms-2">Retour</a>
+            <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+            <a href="dashboard.php?view=posts" class="btn ms-2" style="background-color:#747e87; color:#000;">Retour</a>
         </form>
     </div>
 </body>

@@ -124,11 +124,33 @@ WHERE board_index_id = :id
     <meta charset="UTF-8">
     <title>Modifier une carte</title>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #eaeaea;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+
+        h2 {
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        label {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
-<body class="bg-dark text-light">
+<body>
     <div class="container mt-5">
-        <h2>Modifier la carte #<?= htmlspecialchars($board_index_id) ?></h2>
+        <h2>Modifier la carte d'ID: <?= htmlspecialchars($board_index_id) ?></h2>
 
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
@@ -169,8 +191,8 @@ WHERE board_index_id = :id
                 <input type="text" name="clicher_pcb" class="form-control" value="<?= htmlspecialchars($board['clicher_pcb'] ?? '-') ?>">
             </div>
 
-            <button type="submit" class="btn btn-primary m-2">💾 Enregistrer</button>
-            <a href="dashboard.php?view=boards" class="btn btn-secondary m-2">Retour</a>
+            <button type="submit" class="btn btn-success m-2">💾 Enregistrer</button>
+            <a href="dashboard.php?view=boards" class="btn m-2" style="background-color:#747e87; color:#000;">Retour</a>
         </form>
     </div>
 </body>

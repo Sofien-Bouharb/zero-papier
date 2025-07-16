@@ -53,9 +53,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Ajouter une carte</title>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
+
+
+    <style>
+        body {
+            background-color: #eaeaea;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+
+        h2 {
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        label {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
+
 </head>
 
-<body class="bg-dark text-light p-4">
+<body class="pb-3">
     <div class="container">
         <h2 class="mb-4">📤 Ajouter une nouvelle carte</h2>
 
@@ -99,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" name="clicher_pcb" id="clicher_pcb" class="form-control">
             </div>
 
-            <button type="submit" class="btn btn-primary">Ajouter</button>
+            <button type="submit" class="btn btn-success">Ajouter</button>
             <a href="dashboard.php?view=boards" class="btn btn-secondary ms-2">Annuler</a>
         </form>
     </div>
