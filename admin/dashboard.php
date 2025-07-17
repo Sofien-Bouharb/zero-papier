@@ -95,6 +95,15 @@ $view = $_GET['view'] ?? 'documents';
       box-shadow: 0 0 5px rgba(189, 210, 132, 0.5);
 
     }
+
+
+    button.close,
+    .btn-close {
+      color: #000 !important;
+      /* or any color like red, #333, etc. */
+      opacity: 1 !important;
+      /* make it fully visible */
+    }
   </style>
 </head>
 
@@ -102,9 +111,9 @@ $view = $_GET['view'] ?? 'documents';
   <!-- ✅ Bandeau de navigation -->
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
     <div class="container-fluid">
-      <!-- Replace text with company logo -->
+
       <a class="navbar-brand" href="#">
-        <img src="..\assets\logo_cipiactia.png" alt="Company Logo" height="40">
+        <img src="..\assets\logo.png" alt="Company Logo" height="48">
       </a>
 
       <div class="collapse navbar-collapse">
@@ -383,7 +392,7 @@ $view = $_GET['view'] ?? 'documents';
       <div class="modal-content text-white" style="background-color: #eaeaea;">
         <div class="modal-header">
           <h5 class="modal-title" id="deleteDocumentModalLabel" style="color: #000; font-weight:bold;">Modifier/Supprimer un document</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
         <div class="modal-body">
           <div id="delete-feedback"></div>
@@ -485,6 +494,9 @@ $view = $_GET['view'] ?? 'documents';
         const input = document.getElementById('searchDocument');
         const tbody = document.getElementById('documentsTableBody');
         const paginationContainer = document.querySelector('#mainPagination ul');
+        if (input && input.value.trim().length > 0) {
+          loadSearchResults(input.value.trim(), 1);
+        }
 
         if (input) {
           input.addEventListener('keyup', function() {
@@ -503,6 +515,8 @@ $view = $_GET['view'] ?? 'documents';
             .then(data => {
               tbody.innerHTML = data.html;
               paginationContainer.innerHTML = data.pagination;
+              const input = document.getElementById('searchDocument');
+
               attachPaginationHandlers();
             })
             .catch(error => {
@@ -511,22 +525,29 @@ $view = $_GET['view'] ?? 'documents';
         }
 
         function attachPaginationHandlers() {
-          const searchLinks = document.querySelectorAll('.page-link-nav');
-          searchLinks.forEach(link => {
+          const paginationLinks = document.querySelectorAll('.page-link-nav, .search-page-link');
+
+          paginationLinks.forEach(link => {
             link.addEventListener('click', function(e) {
               e.preventDefault();
+
               const page = parseInt(this.dataset.page);
               const query = input ? input.value.trim() : '';
+
               if (query.length > 0) {
+                // If in search mode
                 loadSearchResults(query, page);
               } else {
+                // Normal pagination fallback
                 const url = new URL(window.location.href);
                 url.searchParams.set('page', page);
+                url.searchParams.set('view', 'documents');
                 window.location.href = url.toString();
               }
             });
           });
         }
+
 
         // Attach handlers for initial pagination
         attachPaginationHandlers();
@@ -626,7 +647,5 @@ $view = $_GET['view'] ?? 'documents';
     });
   </script>
 </body>
-
-</html>
 
 </html>

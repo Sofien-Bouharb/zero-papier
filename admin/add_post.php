@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 if (isset($_SESSION['error_message'])):
 ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
         <?= htmlspecialchars($_SESSION['error_message']) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
     </div>
@@ -15,7 +15,7 @@ if (isset($_SESSION['error_message'])):
 endif; ?>
 
 <?php if (isset($_SESSION['success_message'])): ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
         <?= htmlspecialchars($_SESSION['success_message']) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
     </div>
@@ -105,13 +105,56 @@ VALUES (:hostname, :ip, :ilot_id)
             color: #000;
             font-weight: bold;
         }
+
+        .nav-link {
+            color: #00d6ff !important;
+            font-weight: bold;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .navbar .nav-link {
+            color: #fff !important;
+        }
+
+        .nav-link.active {
+            color: #90969D !important;
+        }
     </style>
 </head>
 
 <body class="p-4">
+    <!-- ✅ Bandeau de navigation -->
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
+        <div class="container-fluid">
 
-    <div class="container">
-        <h2 class="mb-4">📤 Ajouter un nouveau poste</h2>
+            <a class="navbar-brand" href="#">
+                <img src="..\assets\logo.png" alt="Company Logo" height="48">
+            </a>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link " href="dashboard.php" style="color: #fff;">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="dashboard.php?view=boards" style="color: #fff;">Code Index</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.php?view=posts" style="color: #fff;">Postes</a>
+                    </li>
+                </ul>
+                <a href="logout.php" class="btn" style="background-color: #bdd284;">Se déconnecter</a>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <div class="container mt-5 p-3">
+        <h2 class="mb-4 mt-3">📤 Ajouter un nouveau poste</h2>
 
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>

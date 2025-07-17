@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 if (isset($_SESSION['error_message'])):
 ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
         <?= htmlspecialchars($_SESSION['error_message']) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
     </div>
@@ -16,7 +16,7 @@ if (isset($_SESSION['error_message'])):
 endif; ?>
 
 <?php if (isset($_SESSION['success_message'])): ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
         <?= htmlspecialchars($_SESSION['success_message']) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
     </div>
@@ -72,14 +72,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$board_name || !$board_index_id) {
         $error = "Tous les champs obligatoires doivent être remplis.";
         redirect_with_error($error);
+    } elseif (!is_numeric($board_index) || $board_index < 10000 || $board_index > 99999) {
+
+        redirect_with_error("Entrez un entier entre 10000 et 99999 pour l'ID de la carte.");
     } else {
 
 
 
         $check = $pdo->prepare("
   SELECT COUNT(*) FROM documents_search.boards 
-  WHERE board_index_id = :id");
-        $check->execute(['id' =>  $_POST['board_index_id']]);
+  WHERE board_index_id = :new_id AND board_index_id != :current_id");
+        $check->execute([
+            'new_id' => $board_index,
+            'current_id' => $board_index_id
+        ]);
 
         if ($check->fetchColumn() > 0) {
             redirect_with_error("Ce code index existe déjà.");
@@ -145,12 +151,53 @@ WHERE board_index_id = :id
             color: #000;
             font-weight: bold;
         }
+
+        .nav-link {
+            color: #00d6ff !important;
+            font-weight: bold;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .navbar .nav-link {
+            color: #fff !important;
+        }
+
+        .nav-link.active {
+            color: #90969D !important;
+        }
     </style>
 </head>
 
 <body>
-    <div class="container mt-5">
-        <h2>Modifier la carte d'ID: <?= htmlspecialchars($board_index_id) ?></h2>
+    <!-- ✅ Bandeau de navigation -->
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
+        <div class="container-fluid">
+
+            <a class="navbar-brand" href="#">
+                <img src="..\assets\logo.png" alt="Company Logo" height="48">
+            </a>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link " href="dashboard.php" style="color: #fff;">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="dashboard.php?view=boards" style="color: #fff;">Code Index</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.php?view=posts" style="color: #fff;">Postes</a>
+                    </li>
+                </ul>
+                <a href="logout.php" class="btn" style="background-color: #bdd284;">Se déconnecter</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-5 p-3">
+        <h2 class="mt-3">Modifier la carte d'ID: <?= htmlspecialchars($board_index_id) ?></h2>
 
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
@@ -159,7 +206,9 @@ WHERE board_index_id = :id
         <form method="POST" class="mt-4">
             <div class="mb-3">
                 <label class="form-label">Code Index</label>
-                <input type="number" name="board_index_id" class="form-control" value="<?= htmlspecialchars($board['board_index_id']) ?>" required>
+                <input type="number" name="board_index_id" class="form-control" value="<?= htmlspecialchars($board['board_index_id']) ?>" required min="10000"
+                    max="99999"
+                    oninput="this.value = this.value.slice(0, 5)">
             </div>
             <div class="mb-3">
                 <label class="form-label">Nom de la carte</label>

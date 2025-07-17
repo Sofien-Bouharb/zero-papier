@@ -2,16 +2,15 @@
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
 require_once '../includes/helpers.php';
-$_SESSION['LAST_ACTIVITY'] = time(); ?>
-
-
+$_SESSION['LAST_ACTIVITY'] = time();
+?>
 
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 if (isset($_SESSION['error_message'])):
 ?>
-  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+  <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
     <?= htmlspecialchars($_SESSION['error_message']) ?>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
   </div>
@@ -19,7 +18,7 @@ if (isset($_SESSION['error_message'])):
 endif; ?>
 
 <?php if (isset($_SESSION['success_message'])): ?>
-  <div class="alert alert-success alert-dismissible fade show" role="alert">
+  <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
     <?= htmlspecialchars($_SESSION['success_message']) ?>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
   </div>
@@ -37,8 +36,6 @@ endif; ?>
     }
   }, 4000); // 4000ms = 4 seconds
 </script>
-
-
 
 <?php
 // Récupération des postes et cartes et îlots
@@ -111,14 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       ]);
     }
 
-
     header("Location: dashboard.php?view=documents");
     exit();
   } else {
     echo "Erreur lors du téléversement du fichier.";
   }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -130,8 +125,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="../css/bootstrap.min.css">
   <style>
     body {
-
       background-color: #eaeaea;
+    }
+
+    .nav-link {
+      color: #00d6ff !important;
+      font-weight: bold;
+    }
+
+    .nav-link:hover {
+      text-decoration: underline;
+    }
+
+    .navbar .nav-link {
+      color: #fff !important;
+    }
+
+    .nav-link.active {
+      color: #90969D !important;
     }
 
     h2 {
@@ -144,12 +155,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       color: #000;
       font-weight: bold;
     }
+
+    #board_checkboxes {
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: #d1d2d5;
+    }
   </style>
 </head>
 
 <body>
-  <div class="container mt-5">
-    <h2>Ajouter un document PDF</h2>
+  <!-- ✅ Bandeau de navigation -->
+  <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="..\assets\logo.png" alt="Company Logo" height="48">
+      </a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link " href="dashboard.php" style="color: #fff;">Documents</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link " href="dashboard.php?view=boards" style="color: #fff;">Code Index</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="dashboard.php?view=posts" style="color: #fff;">Postes</a>
+          </li>
+        </ul>
+        <a href="logout.php" class="btn" style="background-color: #bdd284;">Se déconnecter</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-5 p-3">
+    <h2 class="mt-3">Ajouter un document</h2>
     <form method="POST" enctype="multipart/form-data" class="mt-4">
       <div class="mb-3">
         <label for="document_name" class="form-label">Nom du document</label>
@@ -184,6 +224,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
       <div class="mb-3">
         <label class="form-label">Sélectionner les cartes à associer :</label>
+        <div class="input-group mb-2">
+          <input type="text" id="board_search" class="form-control" placeholder="Rechercher des cartes..." oninput="filterBoards()">
+          <button type="button" class="btn btn-secondary m-1" onclick="selectAllFilteredBoards()">Sélectionner tout</button>
+          <button type="button" class="btn btn-secondary m-1" onclick="deselectAllVisibleBoards()">Désélectionner tout</button>
+        </div>
         <div id="board_checkboxes" class="form-control text-light" style="max-height: 200px; overflow-y: auto; background-color: #d1d2d5;">
           <?php foreach ($boards as $b): ?>
             <div class="form-check">
@@ -204,7 +249,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <button type="submit" class="btn btn-success my-3 ">📤 Ajouter</button>
       <a href="dashboard.php" class="btn btn ms-2 my-3" style="background-color:#747e87; color:#000;">Annuler</a>
     </form>
-
   </div>
 
   <script>
@@ -242,9 +286,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Run it once on page load
     document.addEventListener('DOMContentLoaded', filterPostsByIlot);
-
-
-
 
     // dynamic document-post-board managing
     let mappings = [];
@@ -284,8 +325,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       document.querySelector(`li[data-index='${index}']`).remove();
       document.getElementById('mappingsInput').value = JSON.stringify(mappings.filter(m => m));
     }
-  </script>
 
+    // Function to filter boards based on search input
+    function filterBoards() {
+      const searchInput = document.getElementById('board_search').value.toLowerCase();
+      const boardCheckboxes = document.querySelectorAll('#board_checkboxes .form-check');
+
+      boardCheckboxes.forEach(checkbox => {
+        const label = checkbox.querySelector('label').innerText.toLowerCase();
+        if (label.includes(searchInput)) {
+          checkbox.style.display = 'block';
+        } else {
+          checkbox.style.display = 'none';
+        }
+      });
+    }
+
+    // Function to select all filtered boards
+    function selectAllFilteredBoards() {
+      const visibleCheckboxes = document.querySelectorAll('#board_checkboxes .form-check[style="display: block;"] input[type="checkbox"]');
+      visibleCheckboxes.forEach(checkbox => {
+        checkbox.checked = true;
+      });
+    }
+
+    // Function to deselect all visible boards
+    function deselectAllVisibleBoards() {
+      const visibleCheckboxes = document.querySelectorAll('#board_checkboxes .form-check[style="display: block;"] input[type="checkbox"]');
+      visibleCheckboxes.forEach(checkbox => {
+        checkbox.checked = false;
+      });
+    }
+  </script>
 </body>
 
 </html>

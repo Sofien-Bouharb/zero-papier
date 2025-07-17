@@ -48,7 +48,6 @@ if (isset($_SESSION['admin_id'])) {
       background: #ffffff;
       width: 100%;
       border: 1px solid #28a5b2;
-      color: #33d6e6;
       border-radius: 6px;
       padding: 0.5rem 0.75rem;
       transition: border-color 0.3s ease;
@@ -82,10 +81,42 @@ if (isset($_SESSION['admin_id'])) {
       font-size: 0.9rem;
       margin-bottom: 1rem;
     }
+
+    .nav-link {
+      color: #00d6ff !important;
+      font-weight: bold;
+    }
+
+    .nav-link:hover {
+      text-decoration: underline;
+    }
+
+    .navbar .nav-link {
+      color: #fff !important;
+    }
+
+    .nav-link.active {
+      color: #90969D !important;
+    }
   </style>
 </head>
 
 <body>
+
+
+
+  <!-- ✅ Bandeau de navigation -->
+  <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
+    <div class="container-fluid">
+
+      <a class="navbar-brand" href="#">
+        <img src="..\assets\logo.png" alt="Company Logo" height="48">
+      </a>
+
+
+    </div>
+  </nav>
+
   <script src="js/bootstrap.bundle.min.js"></script>
 
   <div class="login-container">
