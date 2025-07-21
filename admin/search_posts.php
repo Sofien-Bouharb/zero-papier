@@ -40,7 +40,7 @@ $dataSql = "
     FROM documents_search.workers w
     LEFT JOIN documents_search.ilot i ON w.ilot_id = i.ilot_id
     $whereClause
-    ORDER BY w.hostname
+    ORDER BY  i.ilot_name, w.hostname
     LIMIT :limit OFFSET :offset
 ";
 $dataStmt = $pdo->prepare($dataSql);
@@ -56,9 +56,9 @@ $posts = $dataStmt->fetchAll();
 ob_start();
 foreach ($posts as $w): ?>
     <tr>
+        <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td>
         <td><?= htmlspecialchars($w['hostname']) ?></td>
         <td><?= htmlspecialchars($w['ip_address']) ?></td>
-        <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td>
         <td style="text-align:center;">
             <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
             <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>

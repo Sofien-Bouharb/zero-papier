@@ -196,7 +196,7 @@ $view = $_GET['view'] ?? 'documents';
         </thead>
         <tbody id="boardsTableBody">
           <?php
-          $stmt = $pdo->prepare("SELECT * FROM documents_search.boards ORDER BY board_name LIMIT :limit OFFSET :offset");
+          $stmt = $pdo->prepare("SELECT * FROM documents_search.boards ORDER BY board_index_id LIMIT :limit OFFSET :offset");
           $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
           $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
           $stmt->execute();
@@ -224,40 +224,62 @@ $view = $_GET['view'] ?? 'documents';
       <div class="mb-3 d-flex justify-content-center">
         <input type="text" id="searchPost" class="form-control w-50 search" placeholder="🔍 Rechercher un poste, un ilot, une IP..." autofocus>
       </div>
-      <?php
-      $limit = 10;
-      $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-      $offset = ($page - 1) * $limit;
-      $countstmt = $pdo->query("SELECT COUNT(*) FROM documents_search.workers");
-      $totalRows = $countstmt->fetchColumn();
-      $totalPages = ceil($totalRows / $limit);
-      ?>
+
       <div class="row justify-content-between" id="paginationRow">
         <div class="col-auto">
           <a href="add_post.php" class="btn btn-success mb-2">📤 Ajouter un poste</a>
         </div>
-        <div class="col-auto">
-          <div class="d-flex justify-content-end mb-2">
+        <?php
+        $limit = 10;
+        $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+        $offset = ($page - 1) * $limit;
+        $countstmt = $pdo->query("SELECT COUNT(*) FROM documents_search.workers");
+        $totalRows = $countstmt->fetchColumn();
+        $totalPages = ceil($totalRows / $limit);
+        ?>
+        <?php if ($totalPages > 1): ?>
+          <div class="col-auto" id="paginationContainer">
             <nav id="mainPagination">
-              <ul class="pagination justify-content-end mb-0 pagination-sm">
-                <?php if ($totalPages > 1): ?>
-                  <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <li class="page-item <?= $i === $page ? 'active' : '' ?>">
-                      <a class="page-link page-link-nav" href="#" data-page="<?= $i ?>"><?= $i ?></a>
-                    </li>
-                  <?php endfor; ?>
-                <?php endif; ?>
+              <ul class="pagination pagination-sm mb-0">
+                <?php
+                $range = 2;
+
+                if ($page > 1):
+                  echo '<li class="page-item"><a href="?view=posts&page=' . ($page - 1) . '" class="page-link page-link-nav" data-page="' . ($page - 1) . '">«</a></li>';
+                endif;
+
+                if ($page > $range + 1):
+                  echo '<li class="page-item"><a href="?view=posts&page=1" class="page-link page-link-nav" data-page="1">1</a></li>';
+                  echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                endif;
+
+                for ($i = max(1, $page - $range); $i <= min($totalPages, $page + $range); $i++):
+                  $active = ($i === $page) ? 'active' : '';
+                  echo '<li class="page-item ' . $active . '"><a href="?view=posts&page=' . $i . '" class="page-link page-link-nav" data-page="' . $i . '">' . $i . '</a></li>';
+                endfor;
+
+                if ($page < $totalPages - $range):
+                  echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                  echo '<li class="page-item"><a href="?view=posts&page=' . $totalPages . '" class="page-link page-link-nav" data-page="' . $totalPages . '">' . $totalPages . '</a></li>';
+                endif;
+
+                if ($page < $totalPages):
+                  echo '<li class="page-item"><a href="?view=posts&page=' . ($page + 1) . '" class="page-link page-link-nav" data-page="' . ($page + 1) . '">»</a></li>';
+                endif;
+                ?>
               </ul>
             </nav>
           </div>
-        </div>
+        <?php endif; ?>
+
+
       </div>
       <table class="table table-bordered table-hover">
         <thead>
           <tr>
+            <th style="text-align:center;">Ilot</th>
             <th style="text-align:center;">Nom d'hôte (hostname)</th>
             <th style="text-align:center;">Adresse IP</th>
-            <th style="text-align:center;">Ilot</th>
             <th style="text-align:center;">Actions</th>
           </tr>
         </thead>
@@ -266,7 +288,7 @@ $view = $_GET['view'] ?? 'documents';
           $stmt = $pdo->prepare("SELECT w.step_number, w.hostname, w.ip_address, i.ilot_name
                                           FROM documents_search.workers w
                                           LEFT JOIN documents_search.ilot i ON w.ilot_id = i.ilot_id
-                                          ORDER BY w.hostname
+                                          ORDER BY  i.ilot_name, w.hostname
                                           LIMIT :limit OFFSET :offset");
           $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
           $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -275,9 +297,9 @@ $view = $_GET['view'] ?? 'documents';
           foreach ($workers as $w):
           ?>
             <tr>
+              <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td>
               <td><?= htmlspecialchars($w['hostname']) ?></td>
               <td><?= htmlspecialchars($w['ip_address']) ?></td>
-              <td><?= htmlspecialchars($w['ilot_name'] ?? 'Non défini') ?></td>
               <td style="text-align:center;">
                 <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
                 <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>

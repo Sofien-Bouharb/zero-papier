@@ -35,7 +35,7 @@ $dataSql = "SELECT * FROM documents_search.boards";
 if (!empty($conditions)) {
     $dataSql .= " WHERE " . implode(" AND ", $conditions);
 }
-$dataSql .= " ORDER BY board_name LIMIT :limit OFFSET :offset";
+$dataSql .= " ORDER BY board_index_id LIMIT :limit OFFSET :offset";
 $dataStmt = $pdo->prepare($dataSql);
 foreach ($params as $key => $val) {
     $dataStmt->bindValue($key, $val);

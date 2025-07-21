@@ -4,6 +4,8 @@ require_once '../includes/db.php';
 require_once '../includes/helpers.php';
 $_SESSION['LAST_ACTIVITY'] = time();
 if (session_status() === PHP_SESSION_NONE) session_start();
+$old_input = $_SESSION['old_input'] ?? [];
+unset($_SESSION['old_input']);
 
 if (isset($_SESSION['error_message'])):
 ?>
@@ -45,10 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$hostname || !$ip) {
         $error = "Tous les champs sont obligatoires.";
-        redirect_with_error($error);
+        redirect_with_error($error, 'add_post.php', true);
     } elseif (!filter_var($ip, FILTER_VALIDATE_IP)) {
         $error = "Adresse IP invalide.";
-        redirect_with_error($error);
+        redirect_with_error($error, 'add_post.php', true);
     } else {
         // Vérifier unicité du hostname et de l'IP
         $check = $pdo->prepare("
@@ -59,7 +61,7 @@ WHERE hostname = :hostname OR ip_address = :ip
 
         if ($check->fetchColumn() > 0) {
             $error = "Ce nom de poste ou cette adresse IP existe déjà.";
-            redirect_with_error($error);
+            redirect_with_error($error, 'add_post.php', true);
         } else {
             $stmt = $pdo->prepare("
 INSERT INTO documents_search.workers (hostname, ip_address, ilot_id)
@@ -156,29 +158,34 @@ VALUES (:hostname, :ip, :ilot_id)
     <div class="container mt-5 p-3">
         <h2 class="mb-4 mt-3">📤 Ajouter un nouveau poste</h2>
 
-        <?php if (!empty($error)): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
 
         <form method="POST">
             <div class="mb-3">
                 <label for="hostname" class="form-label">Nom du poste (hostname)</label>
-                <input type="text" name="hostname" id="hostname" class="form-control" required>
+                <input type="text" name="hostname" id="hostname" class="form-control" required
+                    value="<?= htmlspecialchars($old_input['hostname'] ?? '') ?>">
+
             </div>
 
             <div class="mb-3">
                 <label for="ip_address" class="form-label">Adresse IP</label>
-                <input type="text" name="ip_address" id="ip_address" class="form-control" required>
+                <input type="text" name="ip_address" id="ip_address" class="form-control" required
+                    value="<?= htmlspecialchars($old_input['ip_address'] ?? '') ?>">
+
             </div>
 
             <div class="mb-3">
                 <label for="ilot_id" class="form-label">Ilot</label>
                 <select name="ilot_id" id="ilot_id" class="form-select" required>
-                    <option value="" disabled selected>-- Choisir un îlot --</option>
+                    <option value="" disabled <?= empty($old_input['ilot_id']) ? 'selected' : '' ?>>-- Choisir un îlot --</option>
                     <?php foreach ($ilots as $ilot): ?>
-                        <option value="<?= $ilot['ilot_id'] ?>"><?= htmlspecialchars($ilot['ilot_name']) ?></option>
+                        <option value="<?= $ilot['ilot_id'] ?>"
+                            <?= (isset($old_input['ilot_id']) && $old_input['ilot_id'] == $ilot['ilot_id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($ilot['ilot_name']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
+
             </div>
 
             <button type="submit" class="btn btn-success">Ajouter</button>
