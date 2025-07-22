@@ -52,11 +52,16 @@ $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER
         }
 
         .nav-link {
+            color: #00d6ff !important;
             font-weight: bold;
         }
 
         .nav-link:hover {
             text-decoration: underline;
+        }
+
+        .navbar .nav-link {
+            color: #fff !important;
         }
 
         .nav-link.active {
