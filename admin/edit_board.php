@@ -115,7 +115,7 @@ WHERE board_index_id = :id
                 'clicher' => $clicher_pcb,
                 'id' => $board_index_id
             ]);
-
+            $_SESSION['success_message'] = "Carte modifié avec succès.";
             header("Location: dashboard.php?view=boards&success=1");
             exit();
         }

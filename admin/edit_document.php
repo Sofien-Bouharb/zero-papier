@@ -98,7 +98,8 @@ WHERE file_path = ? AND document_id != ?
     $stmt->execute([$document_name, $file_path, $document_id]);
 
     $success = "Document modifié avec succès.";
-    header("Location: dashboard.php?view=documents&success=1");
+    $_SESSION['success_message'] = $success;
+    header("Location: dashboard.php?view=documents");
     exit();
 }
 

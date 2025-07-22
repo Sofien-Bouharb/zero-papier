@@ -47,7 +47,7 @@ if (count($excluded)) {
 $boards = $boardsStmt->fetchAll();
 
 if (empty($boards)) {
-    echo '<p class="text-warning">Aucune carte disponible à associer pour ce nom.</p>';
+    echo '<p class="text-danger">Aucune carte disponible à associer pour ce nom.</p>';
     exit();
 }
 

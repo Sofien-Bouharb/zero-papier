@@ -2,6 +2,57 @@
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
 $_SESSION['LAST_ACTIVITY'] = time(); // Met à jour l'heure de la dernière activité
+
+require_once '../includes/helpers.php';
+$_SESSION['LAST_ACTIVITY'] = time();
+
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+
+if (isset($_SESSION['error_message'])):
+?>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
+    <?= htmlspecialchars($_SESSION['error_message']) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  </div>
+<?php unset($_SESSION['error_message']);
+endif; ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+  <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
+    <?= htmlspecialchars($_SESSION['success_message']) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  </div>
+<?php unset($_SESSION['success_message']);
+endif; ?>
+
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+  setTimeout(function() {
+    const alert = document.querySelector('.alert');
+    if (alert) {
+      const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+      bsAlert.close();
+    }
+  }, 4000);
+</script>
+
+
+<?php
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Quelle vue est demandée ?
 $view = $_GET['view'] ?? 'documents';
 ?>

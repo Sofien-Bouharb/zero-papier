@@ -14,8 +14,8 @@ if (isset($_GET['doc_id'], $_GET['board_id'], $_GET['step_number'])) {
     $stmt->execute([$doc_id, $board_id, $step_number]);
 
     if ($stmt->rowCount() > 0) {
-        header("Location: dashboard.php?view=documents&msg=association_deleted");
-        
+        $_SESSION['success_message'] = "Association supprimée avec succès.";
+        header("Location: dashboard.php?view=documents");
         exit;
     } else {
         echo "Erreur : association non trouvée ou déjà supprimée.";

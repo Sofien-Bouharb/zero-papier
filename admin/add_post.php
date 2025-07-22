@@ -72,6 +72,8 @@ VALUES (:hostname, :ip, :ilot_id)
                 'ip' => $ip,
                 'ilot_id' => $ilot_id
             ]);
+
+            $_SESSION['success_message'] = "Poste " . $hostname . "/" . $ip . " ajouté avec succès.";
             header("Location: dashboard.php?view=posts");
             exit();
         }

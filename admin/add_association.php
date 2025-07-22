@@ -6,8 +6,41 @@ $_SESSION['LAST_ACTIVITY'] = time();
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+
+if (isset($_SESSION['error_message'])):
+?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
+        <?= htmlspecialchars($_SESSION['error_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['error_message']);
+endif; ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
+        <?= htmlspecialchars($_SESSION['success_message']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    </div>
+<?php unset($_SESSION['success_message']);
+endif; ?>
+
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script>
+    setTimeout(function() {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close();
+        }
+    }, 4000);
+</script>
+
+
+<?php
+
+
 if (!isset($_GET['id'])) {
-    redirect_with_error("ID du document manquant.");
+    redirect_with_error("ID du document manquant.", 'dashboard.php');
 }
 
 $document_id = intval($_GET['id']);
@@ -18,7 +51,7 @@ $docStmt->execute([$document_id]);
 $document = $docStmt->fetch();
 
 if (!$document) {
-    redirect_with_error("Document introuvable.");
+    redirect_with_error("Document introuvable.", 'dashboard.php');
 }
 
 // Get all workers and ilots (we no longer fetch all boards here)

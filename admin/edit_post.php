@@ -99,8 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'ilot' => $ilot_id,
                 'step' => $step_number
             ]);
-
-            header("Location: dashboard.php?view=posts&success=1");
+            $_SESSION['success_message'] = "Poste modifié avec succès.";
+            header("Location: dashboard.php?view=posts");
             exit();
         }
     }

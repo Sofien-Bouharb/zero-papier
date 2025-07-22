@@ -67,14 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect_with_error("Un fichier avec ce file path existe déjà.", 'upload.php', true);
   }
 
-  $upload_dir = '../uploads/';    
+  $upload_dir = '../uploads/';
   $target_path = $upload_dir . $filename;
 
   if (move_uploaded_file($file['tmp_name'], $target_path)) {
     $stmt = $pdo->prepare("INSERT INTO documents_search.documents (document_name, file_path) VALUES (:name, :path) RETURNING document_id");
     $stmt->execute(['name' => $document_name, 'path' => $filename]);
     $document_id = $stmt->fetchColumn();
-
+    $inserted = 0;
     $link_stmt = $pdo->prepare("INSERT INTO documents_search.board_post_documents (board_index_id, step_number, document_id) VALUES (:board_id, :step, :doc_id)");
     $uniquePairs = [];
     foreach ($mappings as $map) {
@@ -86,7 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     foreach ($uniquePairs as $pair) {
       $link_stmt->execute(['board_id' => $pair['board_id'], 'step' => $pair['step'], 'doc_id' => $document_id]);
+      $inserted++;
     }
+    $_SESSION['success_message'] = "Document ajouté avec succès et ." . " $inserted associations créées.";
     header("Location: dashboard.php?view=documents");
     exit();
   } else {

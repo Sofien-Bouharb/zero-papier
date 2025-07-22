@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'ref_pcb' => $ref_pcb !== '' ? $ref_pcb : '-',
                 'clicher_pcb' => $clicher_pcb !== '' ? $clicher_pcb : '-',
             ]);
-
+            $_SESSION['success_message'] = "Carte " . $board_index_id . " ajoutée avec succès.";
             header("Location: dashboard.php?view=boards");
             exit();
         }
