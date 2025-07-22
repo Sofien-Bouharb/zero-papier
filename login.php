@@ -1,12 +1,14 @@
 <?php
-session_start();
+
 require_once 'includes/db.php';
+require_once 'includes/helpers.php';
 
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
 
 if (!$username || !$password) {
     echo "Veuillez entrer un nom d'utilisateur et un mot de passe.";
+    redirect_with_error("Veuillez entrer un nom d'utilisateur et un mot de passe.", 'index.php', false);
     exit();
 }
 
@@ -25,7 +27,7 @@ try {
         header("Location: admin/dashboard.php");
         exit();
     } else {
-        echo "Nom d'utilisateur ou mot de passe invalide.";
+        redirect_with_error("Nom d'utilisateur ou mot de passe invalide.", 'index.php', false);
     }
 } catch (PDOException $e) {
     echo "Erreur base de données : " . $e->getMessage();

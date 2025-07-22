@@ -1,8 +1,6 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
-
-
 require_once '../includes/helpers.php';
 $_SESSION['LAST_ACTIVITY'] = time();
 if (session_status() === PHP_SESSION_NONE) session_start();
