@@ -1,13 +1,24 @@
 <?php
+// Check if the admin is logged in
 require_once '../includes/auth_check.php';
+
+// Connect to the database
 require_once '../includes/db.php';
+
+// Include helper functions
 require_once '../includes/helpers.php';
+
+// Ensure a session is started
 if (session_status() === PHP_SESSION_NONE) session_start();
+
+// Update the last activity timestamp (for session timeout management)
+$_SESSION['LAST_ACTIVITY'] = time();
+
 $old_input = $_SESSION['old_input'] ?? [];
 unset($_SESSION['old_input']);
 
 
-
+//Session messages handling
 
 if (isset($_SESSION['error_message'])):
 ?>
@@ -53,8 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$board_index_id || !$board_name) {
         $error = "Les champs 'ID carte' et 'Nom de carte' sont obligatoires.";
         redirect_with_error($error, 'add_board.php', true);
-    } elseif (!is_numeric($board_index_id) || $board_index_id < 10000 || $board_index_id > 99999) {
+    }
 
+    //Board index ID validation
+    elseif (!is_numeric($board_index_id) || $board_index_id < 10000 || $board_index_id > 99999) {
         redirect_with_error("Entrez un entier entre 10000 et 99999 pour l'ID de la carte.", 'add_board.php', true);
     } else {
         // Check if board_index_id already exists
@@ -144,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="pb-3">
 
 
-    <!-- ✅ Bandeau de navigation -->
+    <!-- Navigation bar -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
 
@@ -169,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </nav>
 
-
+    <!-- Form -->
     <div class="container mt-5 p-3">
         <h2 class="mb-4 mt-3">📤 Ajouter une nouvelle carte</h2>
 

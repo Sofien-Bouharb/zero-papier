@@ -1,8 +1,11 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
-$_SESSION['LAST_ACTIVITY'] = time();
 
+// Return JSON
+header('Content-Type: application/json');
+
+//Gert parameters
 $q = $_GET['q'] ?? '';
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
 $limit = 10;
@@ -110,8 +113,7 @@ if ($totalPages > 1):
 endif;
 $pagination = ob_get_clean();
 
-// Return JSON
-header('Content-Type: application/json');
+
 echo json_encode([
     'html' => $html,
     'pagination' => $pagination

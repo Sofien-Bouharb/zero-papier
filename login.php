@@ -3,9 +3,11 @@
 require_once 'includes/db.php';
 require_once 'includes/helpers.php';
 
+//Get parameters from POST request
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
 
+//validate inputs
 if (!$username || !$password) {
     echo "Veuillez entrer un nom d'utilisateur et un mot de passe.";
     redirect_with_error("Veuillez entrer un nom d'utilisateur et un mot de passe.", 'index.php', false);
@@ -13,6 +15,7 @@ if (!$username || !$password) {
 }
 
 try {
+    // Prepare and execute the SQL statement to find the admin
     $stmt = $pdo->prepare("SELECT * FROM documents_search.admins WHERE username = :username");
     $stmt->execute(['username' => $username]);
     $admin = $stmt->fetch();

@@ -1,14 +1,18 @@
 <?php
-require_once '../includes/auth_check.php';
-require_once '../includes/db.php';
-require_once '../includes/helpers.php';
-$_SESSION['LAST_ACTIVITY'] = time();
 
+require_once '../includes/auth_check.php'; // Ensure the user is authenticated
+require_once '../includes/db.php';         // Database connection
+require_once '../includes/helpers.php';    // Utility functions
+
+//  Ensure session is started and update timeout timer
 if (session_status() === PHP_SESSION_NONE) session_start();
+$_SESSION['LAST_ACTIVITY'] = time(); // Used for session timeout
+
+//  Retrieve previous form input if there was an error (for form repopulation)
 $old_input = $_SESSION['old_input'] ?? [];
-unset($_SESSION['old_input']);
+unset($_SESSION['old_input']); // Clear old input after use
 
-
+//  Display error message alert (top right corner)
 if (isset($_SESSION['error_message'])):
 ?>
   <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -18,6 +22,7 @@ if (isset($_SESSION['error_message'])):
 <?php unset($_SESSION['error_message']);
 endif; ?>
 
+<!--  Display success message alert -->
 <?php if (isset($_SESSION['success_message'])): ?>
   <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
     <?= htmlspecialchars($_SESSION['success_message']) ?>
@@ -26,9 +31,10 @@ endif; ?>
 <?php unset($_SESSION['success_message']);
 endif; ?>
 
+<!--  Auto-close alert after 4 seconds -->
 <script src="../js/bootstrap.bundle.min.js"></script>
 <script>
-  setTimeout(function() {
+  setTimeout(() => {
     const alert = document.querySelector('.alert');
     if (alert) {
       const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
@@ -38,10 +44,12 @@ endif; ?>
 </script>
 
 <?php
+//  Fetch select dropdown options from the database
 $workers = $pdo->query("SELECT step_number, hostname, ilot_id FROM documents_search.workers ORDER BY hostname")->fetchAll();
 $board_names = $pdo->query("SELECT DISTINCT board_name FROM documents_search.boards ORDER BY board_name")->fetchAll();
 $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER BY ilot_name")->fetchAll();
 
+//  Helper function: Slugify text for file-safe names
 function slugify($text)
 {
   $text = strtolower(trim($text));
@@ -49,33 +57,44 @@ function slugify($text)
   return trim($text, '_');
 }
 
+//  Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  //  Get form fields
   $document_name = trim($_POST['document_name'] ?? '');
   $file = $_FILES['pdf_file'] ?? null;
   $mappings = json_decode($_POST['mappings'] ?? '[]', true);
 
+  //  Basic validation
   if (!$document_name || !$file || $file['error'] !== 0 || empty($mappings)) {
     redirect_with_error("Tous les champs sont obligatoires, et vous devez sélectionner au moins une association poste-carte.", 'upload.php', true);
   }
 
+  //  Sanitize and normalize file name
   $original_name = basename($file['name']);
   $filename = preg_replace('/[^a-zA-Z0-9-_\.]/', '_', $original_name);
 
+  //  Check for duplicate file path
   $check = $pdo->prepare("SELECT COUNT(*) FROM documents_search.documents WHERE file_path = :path");
   $check->execute(['path' => $filename]);
   if ($check->fetchColumn() > 0) {
     redirect_with_error("Un fichier avec ce file path existe déjà.", 'upload.php', true);
   }
 
+  //  Move uploaded file to destination folder
   $upload_dir = '../uploads/';
   $target_path = $upload_dir . $filename;
 
   if (move_uploaded_file($file['tmp_name'], $target_path)) {
+    //  Insert document info into database
     $stmt = $pdo->prepare("INSERT INTO documents_search.documents (document_name, file_path) VALUES (:name, :path) RETURNING document_id");
     $stmt->execute(['name' => $document_name, 'path' => $filename]);
     $document_id = $stmt->fetchColumn();
+
+    //  Prepare for association insertion
     $inserted = 0;
     $link_stmt = $pdo->prepare("INSERT INTO documents_search.board_post_documents (board_index_id, step_number, document_id) VALUES (:board_id, :step, :doc_id)");
+
+    //  Remove duplicate (post, board) combinations
     $uniquePairs = [];
     foreach ($mappings as $map) {
       $step = $map['step_number'];
@@ -84,19 +103,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uniquePairs[$key] = ['step' => $step, 'board_id' => $board];
       }
     }
+
+    //  Insert associations
     foreach ($uniquePairs as $pair) {
-      $link_stmt->execute(['board_id' => $pair['board_id'], 'step' => $pair['step'], 'doc_id' => $document_id]);
+      $link_stmt->execute([
+        'board_id' => $pair['board_id'],
+        'step' => $pair['step'],
+        'doc_id' => $document_id
+      ]);
       $inserted++;
     }
-    $_SESSION['success_message'] = "Document ajouté avec succès et ." . " $inserted associations créées.";
+
+    //  Success message + redirect
+    $_SESSION['success_message'] = "Document ajouté avec succès et " . " $inserted association(s) créée(s).";
     header("Location: dashboard.php?view=documents");
     exit();
   } else {
-    echo "Erreur lors du téléversement du fichier.";
+    redirect_with_error("Erreur lors du téléversement du fichier.", 'upload.php', true);
   }
 }
 ?>
 
+<!--  HTML Upload Form Page -->
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -141,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
+  <!--  Top navbar -->
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
     <div class="container-fluid">
       <a class="navbar-brand" href="#"><img src="../assets/logo.png" alt="Company Logo" height="48"></a>
@@ -154,19 +183,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     </div>
   </nav>
+
+  <!--  Form content -->
   <div class="container mt-5 p-3">
     <h2 class="mt-3">Ajouter un document</h2>
     <form method="POST" enctype="multipart/form-data" class="mt-4">
+      <!-- Hidden input to preserve return page -->
       <input type="hidden" name="return_to" value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
 
+      <!--  Document name input -->
       <div class="mb-3">
         <label for="document_name">Nom du document</label>
         <input type="text" name="document_name" id="document_name" class="form-control" value="<?= htmlspecialchars($old_input['document_name'] ?? '') ?>" required>
       </div>
+
+      <!--  PDF file upload -->
       <div class="mb-3">
         <label for="pdf_file">Fichier PDF</label>
         <input type="file" name="pdf_file" id="pdf_file" class="form-control" accept="application/pdf" required>
       </div>
+
+      <!--  Ilot selection -->
       <div class="mb-3">
         <label for="ilot_select">Choisir un îlot :</label>
         <select id="ilot_select" class="form-select" onchange="filterPostsByIlot()">
@@ -177,6 +214,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <?php endforeach; ?>
         </select>
       </div>
+
+      <!--  Post selection (filtered by ilot) -->
       <div class="mb-3">
         <label for="selected_post">Choisir un poste :</label>
         <select id="selected_post" class="form-select">
@@ -189,6 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </select>
       </div>
 
+      <!--  Board name family selection and search -->
       <div class="mb-3">
         <label>Sélectionner une famille de cartes: <span style="color: red;">*</span></label>
         <select id="board_name_select" class="form-select mb-2">
@@ -208,9 +248,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div id="board_checkboxes" class="form-control text-light"></div>
       </div>
 
+      <!--  Add mapping button and preview -->
       <button type="button" class="btn" onclick="addMapping()" style="background-color:#2d91ae; color:#000;">➕ Ajouter l'association</button>
       <input type="hidden" name="mappings" id="mappingsInput">
       <ul id="mappingList" class="mt-3"></ul>
+
+      <!--  Submit + Cancel -->
       <button type="submit" class="btn btn-success my-3">📤 Ajouter</button>
       <a href="dashboard.php" class="btn btn ms-2 my-3" style="background-color:#747e87; color:#000;">Annuler</a>
     </form>

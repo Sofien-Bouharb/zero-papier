@@ -1,9 +1,9 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
-$_SESSION['LAST_ACTIVITY'] = time();
 
-header('Content-Type: application/json'); // JSON output
+// JSON output
+header('Content-Type: application/json'); 
 
 // Get parameters
 $q = $_GET['q'] ?? '';

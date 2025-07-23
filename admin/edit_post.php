@@ -1,10 +1,21 @@
 <?php
+// Check if the admin is logged in
 require_once '../includes/auth_check.php';
+
+// Connect to the database
 require_once '../includes/db.php';
+
+// Include helper functions
 require_once '../includes/helpers.php';
-$_SESSION['LAST_ACTIVITY'] = time();
+
+// Ensure a session is started
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// Update the last activity timestamp (for session timeout management)
+$_SESSION['LAST_ACTIVITY'] = time();
+
+
+//Session messages handling
 if (isset($_SESSION['error_message'])):
 ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -34,16 +45,12 @@ endif; ?>
     }, 4000); // 4000ms = 4 seconds
 </script>
 
-
-
-
-
 <?php
-
+//Check if step_number is provided
 if (!isset($_GET['step_number'])) {
     redirect_with_error("Aucun poste spécifié.");
 }
-
+//Get step_number from query parameters
 $step_number = (int) $_GET['step_number'];
 
 // Fetch ilots for dropdown
@@ -53,7 +60,7 @@ $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER
 $stmt = $pdo->prepare("SELECT * FROM documents_search.workers WHERE step_number = :step");
 $stmt->execute(['step' => $step_number]);
 $post = $stmt->fetch();
-
+//Post not found
 if (!$post) {
 
     redirect_with_error("Poste introuvable.");
@@ -63,13 +70,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hostname = trim($_POST['hostname'] ?? '');
     $ip_address = trim($_POST['ip_address'] ?? '');
     $ilot_id = (int) ($_POST['ilot_id'] ?? 0);
-
+    // Validate inputs
     if (!$hostname || !$ip_address || !$ilot_id) {
         $error = "Tous les champs sont obligatoires.";
-        redirect_with_error($error);
+        redirect_with_error($error, 'edit_post.php?step_number=' . $step_number);
     } elseif (!filter_var($ip_address, FILTER_VALIDATE_IP)) {
         $error = "L'adresse IP n'est pas valide.";
-        redirect_with_error($error);
+        redirect_with_error($error, 'edit_post.php?step_number=' . $step_number);
     } else {
 
         // Check for uniqueness of hostname and ip_address (excluding current post)
@@ -86,8 +93,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($conflict->fetchColumn() > 0) {
             $error = "Le nom d'hôte ou l'adresse IP est déjà utilisé(e) par un autre poste.";
-            redirect_with_error($error);
+            redirect_with_error($error, 'edit_post.php?step_number=' . $step_number);
         } else {
+            // Update the post
             $update = $pdo->prepare("
         UPDATE documents_search.workers
         SET hostname = :host, ip_address = :ip, ilot_id = :ilot
@@ -156,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
-    <!-- ✅ Bandeau de navigation -->
+    <!-- Navigation bar -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
 
@@ -180,13 +188,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </nav>
-
+    <!-- Form -->
     <div class="container mt-5 p-3">
         <h2 class="mt-3">Modifier le poste #<?= htmlspecialchars($step_number) ?></h2>
 
-        <?php if (!empty($error)): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
 
         <form method="POST" class="mt-4">
             <div class="mb-3">

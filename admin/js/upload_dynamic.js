@@ -1,25 +1,30 @@
-// upload_dynamic.js
-
+// Execute after DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
-  const boardSelect = document.getElementById("board_name_select");
-  const boardSearchInput = document.getElementById("board_id_search");
-  const boardContainer = document.getElementById("board_checkboxes");
+  const boardSelect = document.getElementById("board_name_select"); // Dropdown for selecting board name
+  const boardSearchInput = document.getElementById("board_id_search"); // Input for filtering boards by index ID
+  const boardContainer = document.getElementById("board_checkboxes"); // Container for board checkboxes
 
-  let lastBoardList = [];
+  let lastBoardList = []; // Stores last fetched list of boards to render
 
+  // When the board name is changed, clear search input and load matching boards
   boardSelect.addEventListener("change", () => {
     boardSearchInput.value = "";
     loadBoards();
   });
 
+  // Search boards using the input field value
   window.searchBoards = function () {
     if (!boardSelect.value) {
       alert("Veuillez sélectionner un nom de carte.");
       return;
     }
-    loadBoards(boardSearchInput.value.trim());
+    loadBoards(boardSearchInput.value.trim()); // Search with current board index ID
   };
 
+  /**
+   * Load boards from server by board name and optional board index ID
+   * This function sends an AJAX request and triggers rendering
+   */
   function loadBoards(boardIndexId = "") {
     boardContainer.innerHTML =
       '<div class="text-center py-2">Chargement...</div>';
@@ -36,8 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        lastBoardList = data;
-        renderBoardCheckboxes();
+        lastBoardList = data; // Save board list for rendering
+        renderBoardCheckboxes(); // Display checkboxes for each board
       })
       .catch((err) => {
         console.error("Erreur:", err);
@@ -46,6 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  /**
+   * Display board checkboxes in the DOM using `lastBoardList`
+   */
   function renderBoardCheckboxes() {
     boardContainer.innerHTML = "";
 
@@ -68,22 +76,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Select all visible board checkboxes
   window.selectAllBoards = function () {
     boardContainer
       .querySelectorAll('input[type="checkbox"]')
       .forEach((cb) => (cb.checked = true));
   };
 
+  // Deselect all visible board checkboxes
   window.deselectAllBoards = function () {
     boardContainer
       .querySelectorAll('input[type="checkbox"]')
       .forEach((cb) => (cb.checked = false));
   };
 
+  /**
+   * Add a mapping between a selected post and selected boards
+   * Updates the mappings list and hidden input field
+   */
   window.addMapping = function () {
     const postSelect = document.getElementById("selected_post");
     const postId = postSelect.value;
     const postLabel = postSelect.options[postSelect.selectedIndex].text;
+
+    // Get checked board checkboxes
     const checkboxes = boardContainer.querySelectorAll(
       'input[type="checkbox"]:checked'
     );
@@ -93,6 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
       (cb) => cb.nextElementSibling.innerText
     );
 
+    // Validate selection
     if (!postId || boardIds.length === 0) {
       alert("Veuillez sélectionner un poste et au moins une carte.");
       return;
@@ -101,12 +118,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const mappingsInput = document.getElementById("mappingsInput");
     const mappingList = document.getElementById("mappingList");
 
+    // Initialize mappings array if not already present
     if (!window.mappings) window.mappings = [];
     const index = window.mappings.length;
 
+    // Add mapping to array and update hidden input
     window.mappings.push({ step_number: postId, board_ids: boardIds });
     mappingsInput.value = JSON.stringify(window.mappings);
 
+    // Create visual list item for the mapping
     const li = document.createElement("li");
     li.setAttribute("data-index", index);
     li.innerHTML = `<strong>${postLabel}</strong> ↔ ${boardLabels.join(
@@ -114,22 +134,32 @@ document.addEventListener("DOMContentLoaded", () => {
     )} <button type="button" class="btn btn-sm btn-danger ms-2" onclick="removeMapping(${index})">❌</button>`;
     mappingList.appendChild(li);
 
+    // Reset form UI
     checkboxes.forEach((cb) => (cb.checked = false));
     boardSearchInput.value = "";
     boardSelect.selectedIndex = 0;
     boardContainer.innerHTML = "";
   };
 
+  /**
+   * Remove a mapping from the list and update the hidden input
+   */
   window.removeMapping = function (index) {
     if (window.mappings) {
-      window.mappings[index] = null;
+      window.mappings[index] = null; // Mark for removal
       document.querySelector(`li[data-index='${index}']`).remove();
+
+      // Clean the array and update hidden input
       document.getElementById("mappingsInput").value = JSON.stringify(
-        window.mappings.filter((m) => m)
+        window.mappings.filter((m) => m) // Remove null entries
       );
     }
   };
 
+  /**
+   * Filter the posts dropdown based on the selected ilot
+   * Only posts that belong to the selected ilot will be shown
+   */
   window.filterPostsByIlot = function () {
     const ilotSelect = document.getElementById("ilot_select");
     const selectedIlot = ilotSelect.value;
@@ -142,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       const ilotId = option.getAttribute("data-ilot-id");
+
       if (ilotId === selectedIlot) {
         option.style.display = "block";
         if (!found) {
@@ -153,8 +184,10 @@ document.addEventListener("DOMContentLoaded", () => {
         option.selected = false;
       }
     });
+
     if (!found) postSelect.selectedIndex = 0;
   };
 
+  // Call ilot filter on page load to initialize post dropdown
   filterPostsByIlot();
 });

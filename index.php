@@ -1,12 +1,15 @@
 <?php
-
-
+//start session if not already started
 if (session_status() === PHP_SESSION_NONE) session_start();
+
+// Check if user is already logged in
 if (isset($_SESSION['admin_id'])) {
   header("Location: admin/dashboard.php");
   exit();
 }
+// Update last activity time
 $_SESSION['LAST_ACTIVITY'] = time();
+//Session messages handling
 if (isset($_SESSION['error_message'])):
 ?>
   <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -34,11 +37,6 @@ endif; ?>
     }
   }, 4000);
 </script>
-
-
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -138,7 +136,7 @@ endif; ?>
 
 
 
-  <!-- ✅ Bandeau de navigation -->
+  <!-- Navigation bar -->
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
     <div class="container-fluid">
 
@@ -153,7 +151,7 @@ endif; ?>
   <script src="js/bootstrap.bundle.min.js"></script>
 
   <div class="login-container">
-    <!-- ✅ Message d'inactivité ici -->
+    <!-- Idle message -->
     <?php if (isset($_GET['timeout']) && $_GET['timeout'] == 1): ?>
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
         ⏱️ Vous avez été déconnecté pour cause d'inactivité.
@@ -161,7 +159,7 @@ endif; ?>
       </div>
     <?php endif; ?>
 
-    <!-- Formulaire -->
+    <!-- Form -->
     <form action="login.php" method="POST" autocomplete="off" spellcheck="false">
       <h2>Admin Login</h2>
       <div class="mb-3">

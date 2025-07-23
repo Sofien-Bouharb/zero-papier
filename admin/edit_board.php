@@ -1,11 +1,20 @@
 <?php
+// Check if the admin is logged in
 require_once '../includes/auth_check.php';
-require_once '../includes/db.php';
-require_once '../includes/helpers.php';
-$_SESSION['LAST_ACTIVITY'] = time();
 
+// Connect to the database
+require_once '../includes/db.php';
+
+// Include helper functions
+require_once '../includes/helpers.php';
+
+// Ensure a session is started
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// Update the last activity timestamp (for session timeout management)
+$_SESSION['LAST_ACTIVITY'] = time();
+
+//Session messages handling
 if (isset($_SESSION['error_message'])):
 ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -35,20 +44,11 @@ endif; ?>
     }, 4000); // 4000ms = 4 seconds
 </script>
 <?php
-
-
-
-
-
-
-
-
-
-
+//Check for board index ID in the URL
 if (!isset($_GET['board_index_id'])) {
     redirect_with_error("Aucune carte spécifiée.");
 }
-
+// Get the board index ID from the URL
 $board_index_id = (int) $_GET['board_index_id'];
 
 // Fetch board data
@@ -61,6 +61,7 @@ if (!$board) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    //Get form inputs and attribute '-' if value not set
     $board_index = (int)($_POST['board_index_id'] ?? 0);
     $board_name = trim($_POST['board_name'] ?? '-');
     $repere_dm = trim($_POST['repere_dm'] ?? '-');
@@ -69,16 +70,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ref_pcb = trim($_POST['ref_pcb'] ?? '-');
     $clicher_pcb = trim($_POST['clicher_pcb'] ?? '-');
 
+    // Validate required fields
     if (!$board_name || !$board_index_id) {
         $error = "Tous les champs obligatoires doivent être remplis.";
-        redirect_with_error($error);
+        redirect_with_error($error, 'edit_board.php?board_index_id=' . $board_index_id);
     } elseif (!is_numeric($board_index) || $board_index < 10000 || $board_index > 99999) {
 
-        redirect_with_error("Entrez un entier entre 10000 et 99999 pour l'ID de la carte.");
+        redirect_with_error("Entrez un entier entre 10000 et 99999 pour l'ID de la carte.", 'edit_board.php?board_index_id=' . $board_index_id);
     } else {
-
-
-
+        // Check if board_index_id already exists
         $check = $pdo->prepare("
   SELECT COUNT(*) FROM documents_search.boards 
   WHERE board_index_id = :new_id AND board_index_id != :current_id");
@@ -88,11 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         if ($check->fetchColumn() > 0) {
-            redirect_with_error("Ce code index existe déjà.");
+            redirect_with_error("Ce code index existe déjà.", ' edit_board.php?board_index_id=' . $board_index_id);
         } else {
-
-
-
+            // Update the board
             $update = $pdo->prepare("
 UPDATE documents_search.boards
 SET board_index_id= :id_b,
@@ -116,7 +114,7 @@ WHERE board_index_id = :id
                 'id' => $board_index_id
             ]);
             $_SESSION['success_message'] = "Carte modifié avec succès.";
-            header("Location: dashboard.php?view=boards&success=1");
+            header("Location: dashboard.php?view=boards");
             exit();
         }
     }
@@ -172,7 +170,7 @@ WHERE board_index_id = :id
 </head>
 
 <body>
-    <!-- ✅ Bandeau de navigation -->
+    <!-- Navigation bar -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
 
@@ -196,13 +194,9 @@ WHERE board_index_id = :id
             </div>
         </div>
     </nav>
+    <!-- Form -->
     <div class="container mt-5 p-3">
         <h2 class="mt-3">Modifier la carte d'ID: <?= htmlspecialchars($board_index_id) ?></h2>
-
-        <?php if (!empty($error)): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
-
         <form method="POST" class="mt-4">
             <div class="mb-3">
                 <label class="form-label">Code Index</label>

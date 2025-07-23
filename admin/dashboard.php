@@ -1,14 +1,20 @@
 <?php
+// Check if the admin is logged in
 require_once '../includes/auth_check.php';
+
+// Connect to the database
 require_once '../includes/db.php';
-$_SESSION['LAST_ACTIVITY'] = time(); // Met à jour l'heure de la dernière activité
 
+// Include helper functions
 require_once '../includes/helpers.php';
-$_SESSION['LAST_ACTIVITY'] = time();
 
+// Ensure a session is started
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// Update the last activity timestamp (for session timeout management)
+$_SESSION['LAST_ACTIVITY'] = time();
 
+//Session messages handling
 if (isset($_SESSION['error_message'])):
 ?>
   <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -37,26 +43,10 @@ endif; ?>
   }, 4000);
 </script>
 
-
 <?php
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Quelle vue est demandée ?
+// Get the view from the query parameter (set default to 'documents')
 $view = $_GET['view'] ?? 'documents';
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -159,7 +149,7 @@ $view = $_GET['view'] ?? 'documents';
 </head>
 
 <body data-view="<?= $view ?>">
-  <!-- ✅ Bandeau de navigation -->
+  <!-- Navigation bar -->
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
     <div class="container-fluid">
 
@@ -185,8 +175,10 @@ $view = $_GET['view'] ?? 'documents';
   </nav>
 
   <div class="container">
+    <!-- The boards dashboard -->
     <?php if ($view === 'boards'): ?>
       <h3 class="m-3">Liste des cartes (boards)</h3>
+      <!-- Search bar -->
       <div class="my-3 d-flex justify-content-center">
         <input type="text" id="searchBoard" class="form-control w-50 search" placeholder="🔍 Rechercher un code index, un nom, un repère, etc." autofocus>
       </div>
@@ -194,6 +186,7 @@ $view = $_GET['view'] ?? 'documents';
         <div class="col-auto">
           <a href="add_board.php" class="btn btn-success mb-2 ">📤 Ajouter un code index</a>
         </div>
+        <!-- Pagination Navbar-->
         <?php
         $limit = 10;
         $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -247,6 +240,7 @@ $view = $_GET['view'] ?? 'documents';
         </thead>
         <tbody id="boardsTableBody">
           <?php
+          // Fetch boards with pagination
           $stmt = $pdo->prepare("SELECT * FROM documents_search.boards ORDER BY board_index_id LIMIT :limit OFFSET :offset");
           $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
           $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
@@ -270,8 +264,10 @@ $view = $_GET['view'] ?? 'documents';
           <?php endforeach; ?>
         </tbody>
       </table>
+      <!--  The posts dashboard -->
     <?php elseif ($view === 'posts'): ?>
       <h3 class="m-3">Liste des postes (workers)</h3>
+      <!-- Search bar -->
       <div class="mb-3 d-flex justify-content-center">
         <input type="text" id="searchPost" class="form-control w-50 search" placeholder="🔍 Rechercher un poste, un ilot, une IP..." autofocus>
       </div>
@@ -280,6 +276,7 @@ $view = $_GET['view'] ?? 'documents';
         <div class="col-auto">
           <a href="add_post.php" class="btn btn-success mb-2">📤 Ajouter un poste</a>
         </div>
+        <!-- Pagination Navbar-->
         <?php
         $limit = 10;
         $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -336,6 +333,7 @@ $view = $_GET['view'] ?? 'documents';
         </thead>
         <tbody id="postsTableBody">
           <?php
+          // Fetch posts with pagination
           $stmt = $pdo->prepare("SELECT w.step_number, w.hostname, w.ip_address, i.ilot_name
                                           FROM documents_search.workers w
                                           LEFT JOIN documents_search.ilot i ON w.ilot_id = i.ilot_id
@@ -359,12 +357,15 @@ $view = $_GET['view'] ?? 'documents';
           <?php endforeach; ?>
         </tbody>
       </table>
-    <?php else: // default view = documents 
+      <!-- Default view: documents -->
+    <?php else:
     ?>
       <h3 class="m-3">Liste des associations documents-postes-codes</h3>
+      <!-- Search bar -->
       <div class="mb-4 d-flex justify-content-center">
         <input type="text" id="searchDocument" class="form-control w-50 search" placeholder="🔍 Rechercher un document, un poste, une carte..." autofocus>
       </div>
+      <!-- Pagination Navbar-->
       <?php
       $limit = 10;
       $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -423,6 +424,7 @@ $view = $_GET['view'] ?? 'documents';
         </thead>
         <tbody id="documentsTableBody">
           <?php
+          // Fetch documents with pagination
           $stmt = $pdo->prepare("
                         SELECT d.document_id, d.document_name, d.file_path,
                                b.board_name, b.board_index_id,
@@ -459,7 +461,7 @@ $view = $_GET['view'] ?? 'documents';
     <?php endif; ?>
   </div>
 
-  <!-- Delete Document Modal -->
+  <!-- Edit & Delete Document Modal (used to edit or delete a document not an association )-->
   <div class="modal fade" id="deleteDocumentModal" tabindex="-1" aria-labelledby="deleteDocumentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content text-white" style="background-color: #eaeaea;">
@@ -480,39 +482,45 @@ $view = $_GET['view'] ?? 'documents';
 
   <script src="../js/bootstrap.bundle.min.js"></script>
   <script>
+    // Wait until the entire DOM is fully loaded before running the script
     document.addEventListener('DOMContentLoaded', function() {
+      // Get the current view (documents, boards, or posts) from a data attribute on the <body>
       const view = document.body.dataset.view;
 
-      // Modal code (common to all views)
-      const modalElement = document.getElementById('deleteDocumentModal');
-      const modalSearch = document.getElementById('modalSearch');
-      const documentList = document.getElementById('document-list');
-      let allDocuments = [];
+      /** ---------- MODAL LOGIC ---------- **/
 
+      const modalElement = document.getElementById('deleteDocumentModal'); // Delete modal element
+      const modalSearch = document.getElementById('modalSearch'); // Search input inside modal
+      const documentList = document.getElementById('document-list'); // List where modal results are displayed
+
+      // If modal exists on the page
       if (modalElement) {
+        // When modal is shown, load documents into it
         modalElement.addEventListener('shown.bs.modal', function() {
           loadDocumentsModal();
+
+          // When modal is hidden, reset the search input and clear the results
           modalElement.addEventListener('hidden.bs.modal', function() {
-            if (modalSearch) {
-              modalSearch.value = '';
-            }
+            if (modalSearch) modalSearch.value = '';
             documentList.innerHTML = '';
           });
         });
       }
 
+      // Loads documents inside the delete modal with optional search query and page number
       function loadDocumentsModal(query = '', page = 1) {
         fetch(`get_documents.php?q=${encodeURIComponent(query)}&page=${page}`)
           .then(response => response.json())
           .then(data => {
             documentList.innerHTML = data.html + data.pagination;
-            attachModalPaginationHandlers();
+            attachModalPaginationHandlers(); // Reattach pagination links inside the modal
           })
           .catch(error => {
             console.error('Erreur AJAX lors du chargement des documents :', error);
           });
       }
 
+      // Attaches event listeners to modal pagination links
       function attachModalPaginationHandlers() {
         const links = document.querySelectorAll('.modal-page-link');
         links.forEach(link => {
@@ -520,21 +528,24 @@ $view = $_GET['view'] ?? 'documents';
             e.preventDefault();
             const page = parseInt(this.dataset.page);
             const query = modalSearch.value.trim();
-            loadDocumentsModal(query, page);
+            loadDocumentsModal(query, page); // Load content for selected page
           });
         });
       }
 
+      // Attach search listener only once to avoid duplicates
       if (modalSearch && !modalSearch.dataset.listenerAttached) {
         modalSearch.addEventListener('input', () => {
           const query = modalSearch.value.trim();
-          loadDocumentsModal(query, 1);
+          loadDocumentsModal(query, 1); // Search when input changes
         });
-        modalSearch.dataset.listenerAttached = 'true';
+        modalSearch.dataset.listenerAttached = 'true'; // Mark listener as attached
       }
 
+      // Function called when user confirms deletion of a document
       window.deleteDocument = function(id, btn) {
         if (!confirm('Confirmer la suppression du document ?')) return;
+
         fetch('delete_document.php', {
             method: 'POST',
             headers: {
@@ -546,85 +557,85 @@ $view = $_GET['view'] ?? 'documents';
           .then(result => {
             const feedback = document.getElementById('delete-feedback');
             if (result === 'success') {
+              // Remove item from modal list and main table
               btn.closest('li').remove();
               const rows = document.querySelectorAll(`#documentsTable tr[data-doc-id="${id}"]`);
               rows.forEach(row => row.remove());
+
               feedback.innerHTML = '<div class="alert alert-success">Document supprimé avec succès.</div>';
-              setTimeout(() => {
-                feedback.innerHTML = '';
-              }, 3000);
             } else {
               feedback.innerHTML = '<div class="alert alert-danger">Erreur lors de la suppression.</div>';
-              setTimeout(() => {
-                feedback.innerHTML = '';
-              }, 3000);
             }
+            // Remove feedback message after 3 seconds
+            setTimeout(() => {
+              feedback.innerHTML = '';
+            }, 3000);
           });
       };
 
-      // View-specific code
+      /** ---------- VIEW-SPECIFIC LOGIC: DOCUMENTS DASHBOARD ---------- **/
+
       if (view === 'documents') {
-        const input = document.getElementById('searchDocument');
-        const tbody = document.getElementById('documentsTableBody');
-        const paginationContainer = document.querySelector('#mainPagination ul');
+        const input = document.getElementById('searchDocument'); // Search input
+        const tbody = document.getElementById('documentsTableBody'); // Table body for documents
+        const paginationContainer = document.querySelector('#mainPagination ul'); // Pagination area
+
+        // If search input has value on load (e.g. from refresh), show results
         if (input && input.value.trim().length > 0) {
           loadSearchResults(input.value.trim(), 1);
         }
 
+        // Attach event on typing in search input
         if (input) {
           input.addEventListener('keyup', function() {
             const query = input.value.trim();
             if (query.length > 0) {
-              loadSearchResults(query, 1);
+              loadSearchResults(query, 1); // Search
             } else {
-              window.location.href = window.location.pathname;
+              window.location.href = window.location.pathname; // Reload the page to reset view
             }
           });
         }
 
+        // AJAX search for documents
         function loadSearchResults(query = '', page = 1) {
           fetch(`search_documents.php?q=${encodeURIComponent(query)}&page=${page}`)
             .then(response => response.json())
             .then(data => {
               tbody.innerHTML = data.html;
               paginationContainer.innerHTML = data.pagination;
-              const input = document.getElementById('searchDocument');
-
-              attachPaginationHandlers();
+              attachPaginationHandlers(); // Rebind pagination links
             })
             .catch(error => {
               console.error('Erreur AJAX lors de la recherche des documents :', error);
             });
         }
 
+        // Binds pagination events for documents view
         function attachPaginationHandlers() {
           const paginationLinks = document.querySelectorAll('.page-link-nav, .search-page-link');
-
           paginationLinks.forEach(link => {
             link.addEventListener('click', function(e) {
               e.preventDefault();
-
               const page = parseInt(this.dataset.page);
               const query = input ? input.value.trim() : '';
-
               if (query.length > 0) {
-                // If in search mode
                 loadSearchResults(query, page);
               } else {
-                // Normal pagination fallback
                 const url = new URL(window.location.href);
                 url.searchParams.set('page', page);
                 url.searchParams.set('view', 'documents');
-                window.location.href = url.toString();
+                window.location.href = url.toString(); // Full reload for normal pagination
               }
             });
           });
         }
 
+        attachPaginationHandlers(); // Initial pagination
+      }
 
-        // Attach handlers for initial pagination
-        attachPaginationHandlers();
-      } else if (view === 'boards') {
+      /** ---------- VIEW-SPECIFIC LOGIC: BOARDS DASHBOARD ---------- **/
+      else if (view === 'boards') {
         const boardInput = document.getElementById('searchBoard');
         const boardTbody = document.getElementById('boardsTableBody');
         const paginationContainer = document.querySelector('#mainPagination ul');
@@ -669,8 +680,11 @@ $view = $_GET['view'] ?? 'documents';
           });
         }
 
-        attachBoardPaginationHandlers(); // For initial page load
-      } else if (view === 'posts') {
+        attachBoardPaginationHandlers(); // Initial page load
+      }
+
+      /** ---------- VIEW-SPECIFIC LOGIC: POSTS DASHBOARD ---------- **/
+      else if (view === 'posts') {
         const postInput = document.getElementById('searchPost');
         const postTbody = document.getElementById('postsTableBody');
         const paginationContainer = document.querySelector('#mainPagination ul');
@@ -715,10 +729,11 @@ $view = $_GET['view'] ?? 'documents';
           });
         }
 
-        attachPostPaginationHandlers();
+        attachPostPaginationHandlers(); // Initial page load
       }
     });
   </script>
+
 </body>
 
 </html>

@@ -1,10 +1,21 @@
 <?php
+// Check if the admin is logged in
 require_once '../includes/auth_check.php';
+
+// Connect to the database
 require_once '../includes/db.php';
+
+// Include helper functions
 require_once '../includes/helpers.php';
-$_SESSION['LAST_ACTIVITY'] = time();
+
+// Ensure a session is started
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// Update the last activity timestamp (for session timeout management)
+$_SESSION['LAST_ACTIVITY'] = time();
+
+
+// Session messages handling
 if (isset($_SESSION['error_message'])):
 ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -67,10 +78,7 @@ WHERE file_path = ? AND document_id != ?
         $check->execute([$newFileName, $document_id]);
 
         if ($check->fetchColumn() > 0) {
-            redirect_with_error("Un autre document utilise déjà ce file path. Veuillez renommer le fichier.");
-            $_SESSION['error_message'] = "Un autre document utilise déjà ce nom de fichier. Veuillez renommer le fichier.";
-            $_SESSION['old_input'] = $_POST;
-            header("Location: edit_document.php?id=" . $document_id);
+            redirect_with_error("Un autre document utilise déjà ce file path. Veuillez renommer le fichier.", 'edit_document.php?id=' . $document_id);
             exit();
         }
 
@@ -85,10 +93,7 @@ WHERE file_path = ? AND document_id != ?
 
             $file_path = $newFileName;
         } else {
-            redirect_with_error("Erreur lors du téléchargement du fichier.");
-            $_SESSION['error_message'] = "Erreur lors du téléchargement du fichier.";
-            $_SESSION['old_input'] = $_POST;
-            header("Location: edit_document.php?id=" . $document_id);
+            redirect_with_error("Erreur lors du téléchargement du fichier.", 'edit_document.php?id=' . $document_id);
             exit();
         }
     }
@@ -108,7 +113,7 @@ $document_id = isset($_GET['id']) ? intval($_GET['id']) : ($_POST['document_id']
 $stmt = $pdo->prepare("SELECT * FROM documents_search.documents WHERE document_id = ?");
 $stmt->execute([$document_id]);
 $doc = $stmt->fetch();
-
+//No document found
 if (!$doc) {
     redirect_with_error("Document introuvable.");
 }
@@ -164,7 +169,7 @@ if (!$doc) {
 </head>
 
 <body>
-    <!-- ✅ Bandeau de navigation -->
+    <!-- Navigation bar -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-5" style="background-color: #000;">
         <div class="container-fluid">
 
@@ -189,6 +194,7 @@ if (!$doc) {
         </div>
     </nav>
 
+    <!-- Form -->
 
     <div class="container mt-5 p-3">
         <h2 class="mb-4 mt-3">📝 Modifier le document</h2>
@@ -205,12 +211,12 @@ if (!$doc) {
                 <label for="document_file" class="form-label">Remplacer le fichier (PDF)</label>
                 <input type="file" name="document_file" class="form-control" accept="application/pdf" id="document_file">
 
-                <!-- Show the current file name -->
+                <!-- Show the current file path (the old one) -->
                 <p class="text-danger mt-2">
-                    Fichier actuel : <strong><?= htmlspecialchars($doc['file_path']) ?></strong>
+                    File path actuel : <strong><?= htmlspecialchars($doc['file_path']) ?></strong>
                 </p>
 
-                <!-- Optional: View/download the current file -->
+                <!-- Optional: View the current file path (the old one) -->
                 <a href="../uploads/<?= urlencode($doc['file_path']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">📄 Voir le document</a>
             </div>
 

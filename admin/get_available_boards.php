@@ -2,12 +2,11 @@
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
 
-$_SESSION['LAST_ACTIVITY'] = time();
-
+//Get parameters
 $step_number  = intval($_GET['step_number'] ?? 0);
 $document_id  = intval($_GET['document_id'] ?? 0);
 $board_name   = trim($_GET['board_name'] ?? '');
-
+// Validate parameters
 if ($step_number <= 0 || $document_id <= 0 || !$board_name) {
     echo '<p class="text-danger">Paramètres invalides ou nom de carte manquant.</p>';
     exit();
@@ -35,6 +34,7 @@ if (count($excluded)) {
     $boardsStmt = $pdo->prepare($query);
     $boardsStmt->execute($params);
 } else {
+    // If no exclusions, just fetch by name
     $boardsStmt = $pdo->prepare("
       SELECT board_index_id, board_name
       FROM documents_search.boards
@@ -45,12 +45,12 @@ if (count($excluded)) {
 }
 
 $boards = $boardsStmt->fetchAll();
-
+// Check if any boards were found
 if (empty($boards)) {
     echo '<p class="text-danger">Aucune carte disponible à associer pour ce nom.</p>';
     exit();
 }
-
+// Output the available boards
 foreach ($boards as $b): ?>
     <div class="form-check">
         <input class="form-check-input" type="checkbox" value="<?= $b['board_index_id'] ?>" id="board<?= $b['board_index_id'] ?>">

@@ -1,12 +1,24 @@
 <?php
+// Check if the admin is logged in
 require_once '../includes/auth_check.php';
+
+// Connect to the database
 require_once '../includes/db.php';
+
+// Include helper functions
 require_once '../includes/helpers.php';
-$_SESSION['LAST_ACTIVITY'] = time();
+
+// Ensure a session is started
 if (session_status() === PHP_SESSION_NONE) session_start();
+
+// Update the last activity timestamp (for session timeout management)
+$_SESSION['LAST_ACTIVITY'] = time();
+
+// Retrieve old input data if available
 $old_input = $_SESSION['old_input'] ?? [];
 unset($_SESSION['old_input']);
 
+// Session messages handling
 if (isset($_SESSION['error_message'])):
 ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -36,6 +48,7 @@ endif; ?>
     }, 4000); // 4000ms = 4 seconds
 </script>
 <?php
+//Get ilots for the dropdown
 $ilot_stmt = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER BY ilot_name");
 $ilots = $ilot_stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -44,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hostname = trim($_POST['hostname'] ?? '');
     $ip = trim($_POST['ip_address'] ?? '');
     $ilot_id = $_POST['ilot_id'] ?? null;
-
+    // Validate required fields
     if (!$hostname || !$ip) {
         $error = "Tous les champs sont obligatoires.";
         redirect_with_error($error, 'add_post.php', true);
@@ -52,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Adresse IP invalide.";
         redirect_with_error($error, 'add_post.php', true);
     } else {
-        // Vérifier unicité du hostname et de l'IP
+        // Check if hostname or IP already exists
         $check = $pdo->prepare("
 SELECT COUNT(*) FROM documents_search.workers
 WHERE hostname = :hostname OR ip_address = :ip
@@ -63,6 +76,7 @@ WHERE hostname = :hostname OR ip_address = :ip
             $error = "Ce nom de poste ou cette adresse IP existe déjà.";
             redirect_with_error($error, 'add_post.php', true);
         } else {
+            // Insert new post
             $stmt = $pdo->prepare("
 INSERT INTO documents_search.workers (hostname, ip_address, ilot_id)
 VALUES (:hostname, :ip, :ilot_id)
@@ -130,7 +144,7 @@ VALUES (:hostname, :ip, :ilot_id)
 </head>
 
 <body class="p-4">
-    <!-- ✅ Bandeau de navigation -->
+    <!-- Navigation bar -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
 
@@ -155,7 +169,7 @@ VALUES (:hostname, :ip, :ilot_id)
         </div>
     </nav>
 
-
+    <!-- Form -->
 
     <div class="container mt-5 p-3">
         <h2 class="mb-4 mt-3">📤 Ajouter un nouveau poste</h2>

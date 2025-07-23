@@ -1,12 +1,20 @@
 <?php
+// Check if the admin is logged in
 require_once '../includes/auth_check.php';
-require_once '../includes/db.php';
-require_once '../includes/helpers.php';
-$_SESSION['LAST_ACTIVITY'] = time();
 
+// Connect to the database
+require_once '../includes/db.php';
+
+// Include helper functions
+require_once '../includes/helpers.php';
+
+// Ensure a session is started
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// Update the last activity timestamp (for session timeout management)
+$_SESSION['LAST_ACTIVITY'] = time();
 
+//Session messages handling
 if (isset($_SESSION['error_message'])):
 ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -38,7 +46,7 @@ endif; ?>
 
 <?php
 
-
+// Check for document ID in the URL
 if (!isset($_GET['id'])) {
     redirect_with_error("ID du document manquant.", 'dashboard.php');
 }
@@ -49,7 +57,7 @@ $document_id = intval($_GET['id']);
 $docStmt = $pdo->prepare("SELECT * FROM documents_search.documents WHERE document_id = ?");
 $docStmt->execute([$document_id]);
 $document = $docStmt->fetch();
-
+//Document not found
 if (!$document) {
     redirect_with_error("Document introuvable.", 'dashboard.php');
 }
@@ -108,6 +116,7 @@ $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER
 </head>
 
 <body>
+    <!-- ==========Navigation Bar ========== -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
             <a class="navbar-brand" href="#"><img src="../assets/logo.png" alt="Company Logo" height="48"></a>
@@ -121,7 +130,7 @@ $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER
             </div>
         </div>
     </nav>
-
+    <!-- ========== Form ========== -->
     <div class="container mt-5 p-3">
         <h2 class="mt-3">Ajouter des associations pour :</h2>
         <h4 class="text-success"><?= htmlspecialchars($document['document_name']) ?></h4>

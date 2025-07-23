@@ -1,7 +1,19 @@
 <?php
-
+// Check if the admin is logged in
 require_once '../includes/auth_check.php';
+
+// Connect to the database
 require_once '../includes/db.php';
+
+// Include helper functions
+require_once '../includes/helpers.php';
+
+// Ensure a session is started
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+// Update the last activity timestamp (for session timeout management)
+$_SESSION['LAST_ACTIVITY'] = time();
+
 
 if (isset($_GET['doc_id'], $_GET['board_id'], $_GET['step_number'])) {
     $doc_id = intval($_GET['doc_id']);
@@ -18,8 +30,8 @@ if (isset($_GET['doc_id'], $_GET['board_id'], $_GET['step_number'])) {
         header("Location: dashboard.php?view=documents");
         exit;
     } else {
-        echo "Erreur : association non trouvée ou déjà supprimée.";
+        redirect_with_error("Erreur : association non trouvée ou déjà supprimée.");
     }
 } else {
-    echo "Paramètres manquants.";
+    redirect_with_error("Paramètres manquants.");
 }

@@ -1,10 +1,12 @@
 <?php
 require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
-$_SESSION['LAST_ACTIVITY'] = time();
 
+// Set the content type to JSON
 header('Content-Type: application/json');
 
+
+// Get parameters
 $q = $_GET['q'] ?? '';
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
 $limit = 10;
