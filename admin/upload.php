@@ -165,6 +165,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       overflow-y: auto;
       background-color: #d1d2d5;
     }
+
+    .emoji {
+      width: 1em;
+      height: 1em;
+      vertical-align: middle;
+    }
   </style>
 </head>
 
@@ -172,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!--  Top navbar -->
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#"><img src="../assets/logo.png" alt="Company Logo" height="48"></a>
+      <a class="navbar-brand" href="#" style="cursor:default"><img src="../assets/logo.png" alt="Company Logo" height="48"></a>
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item"><a class="nav-link" href="dashboard.php">Documents</a></li>
@@ -240,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="input-group mb-2">
           <input type="text" id="board_id_search" class="form-control" placeholder="ID carte (optionnel)">
-          <button type="button" class="btn btn-primary" onclick="searchBoards()">🔍</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm mx-1" onclick="searchBoards()"><img src="../../assets/emojis/1f50d.png" alt="search" class="emoji"></button>
           <button type="button" class="btn btn-secondary m-1" onclick="selectAllBoards()">Tout sélectionner</button>
           <button type="button" class="btn btn-secondary m-1" onclick="deselectAllBoards()">Tout désélectionner</button>
         </div>
@@ -249,17 +255,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <!--  Add mapping button and preview -->
-      <button type="button" class="btn" onclick="addMapping()" style="background-color:#2d91ae; color:#000;">➕ Ajouter l'association</button>
+      <button type="button" class="btn" onclick="addMapping()" style="background-color:#2d91ae; color:#000;"> <img src="../../assets/emojis/2795.png" alt="ajout" class="emoji"> Ajouter l'association</button>
       <input type="hidden" name="mappings" id="mappingsInput">
       <ul id="mappingList" class="mt-3"></ul>
 
       <!--  Submit + Cancel -->
-      <button type="submit" class="btn btn-success my-3">📤 Ajouter</button>
+      <button type="submit" class="btn btn-success my-3"><img src="../assets/emojis/1F4E4.png" alt="ajout" class="emoji"> Ajouter</button>
       <a href="dashboard.php" class="btn btn ms-2 my-3" style="background-color:#747e87; color:#000;">Annuler</a>
     </form>
   </div>
 
-  <script src="js/upload_dynamic.js"></script>
+  <script src="js/upload_dynamic.js">
+    console.log("js loaded");
+  </script>
 </body>
 
 </html>

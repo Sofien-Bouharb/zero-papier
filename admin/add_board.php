@@ -150,8 +150,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .nav-link.active {
             color: #90969D !important;
         }
-    </style>
 
+        .emoji {
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+        }
+    </style>
 </head>
 
 <body class="pb-3">
@@ -161,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
 
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="#" style="cursor:default">
                 <img src="..\assets\logo.png" alt="Company Logo" height="48">
             </a>
 
@@ -184,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Form -->
     <div class="container mt-5 p-3">
-        <h2 class="mb-4 mt-3">📤 Ajouter une nouvelle carte</h2>
+        <h2 class="mb-4 mt-3"><img src="../../assets/emojis/1f4be.png" alt="enregistrer" class="emoji"> Ajouter une nouvelle carte</h2>
 
 
         <form method="POST">

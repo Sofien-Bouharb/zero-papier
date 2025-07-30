@@ -3,7 +3,7 @@ require_once '../includes/auth_check.php';
 require_once '../includes/db.php';
 
 // JSON output
-header('Content-Type: application/json'); 
+header('Content-Type: application/json');
 
 // Get parameters
 $q = $_GET['q'] ?? '';
@@ -105,7 +105,7 @@ if (count($rows) > 0) {
             <td><strong><?= htmlspecialchars($row['hostname']) ?></strong></td>
             <td><strong><?= htmlspecialchars($row['board_name']) ?> (ID: <?= $row['board_index_id'] ?>)</strong></td>
             <td style="text-align:center;">
-                <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');">🗑️</a>
+                <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');"><img src="../assets/emojis/1f5d1.png" alt="supprimer" class="emoji"></a>
             </td>
         </tr>
     <?php endforeach;

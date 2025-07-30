@@ -129,9 +129,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create visual list item for the mapping
     const li = document.createElement("li");
     li.setAttribute("data-index", index);
-    li.innerHTML = `<strong>${postLabel}</strong> ↔ ${boardLabels.join(
-      ", "
-    )} <button type="button" class="btn btn-sm btn-danger ms-2" onclick="removeMapping(${index})">❌</button>`;
+    li.innerHTML = `<strong>${postLabel}</strong> ↔ ${boardLabels.join(", ")} 
+    <button type="button" class="btn btn-sm btn-danger ms-2" onclick="removeMapping(${index})">
+    <img src="../../assets/emojis/0000.png" alt="❌" class="emoji">
+  </button>`;
+    //<button type="button" class="btn btn-sm btn-danger ms-2" onclick="removeMapping(${index})">❌</button>`;
     mappingList.appendChild(li);
 
     // Reset form UI

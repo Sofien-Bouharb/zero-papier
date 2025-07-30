@@ -63,7 +63,7 @@ if (count($documents) === 0): ?>
                     <!-- Document name and file link -->
                     <strong><?= htmlspecialchars($doc['document_name']) ?></strong><br>
                     <small>
-                        📄 <a href="../uploads/<?= urlencode($doc['file_path']) ?>" target="_blank" class="text-decoration-underline">
+                        <img src="../../assets/emojis/1f4c4.png" alt="voir" class="emoji"> <a href="../uploads/<?= urlencode($doc['file_path']) ?>" target="_blank" class="text-decoration-underline">
                             <?= htmlspecialchars($doc['file_path']) ?>
                         </a>
                     </small>

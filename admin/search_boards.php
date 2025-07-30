@@ -60,8 +60,8 @@ if ($boards):
             <td><?= htmlspecialchars($b['ref_pcb'] ?? '-') ?></td>
             <td><?= htmlspecialchars($b['clicher_pcb'] ?? '-') ?></td>
             <td style="text-align:center;">
-                <a href="edit_board.php?board_index_id=<?= $b['board_index_id'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
-                <a href="delete_board.php?id=<?= $b['board_index_id'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer cette carte ?');">🗑️</a>
+                <a href="edit_board.php?board_index_id=<?= $b['board_index_id'] ?>" class="text-warning me-3" title="Modifier"><img src="../assets/emojis/270f.png" alt="modif" class="emoji"></a>
+                <a href="delete_board.php?id=<?= $b['board_index_id'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer cette carte ?');"><img src="../assets/emojis/1f5d1.png" alt="supprimer" class="emoji"></a>
             </td>
         </tr>
     <?php endforeach;

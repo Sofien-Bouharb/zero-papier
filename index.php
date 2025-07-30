@@ -140,7 +140,7 @@ endif; ?>
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
     <div class="container-fluid">
 
-      <a class="navbar-brand" href="#">
+      <a class="navbar-brand" href="#" style="cursor:default">
         <img src="..\assets\logo.png" alt="Company Logo" height="48">
       </a>
 
@@ -154,7 +154,7 @@ endif; ?>
     <!-- Idle message -->
     <?php if (isset($_GET['timeout']) && $_GET['timeout'] == 1): ?>
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        ⏱️ Vous avez été déconnecté pour cause d'inactivité.
+        Vous avez été déconnecté pour cause d'inactivité.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
       </div>
     <?php endif; ?>

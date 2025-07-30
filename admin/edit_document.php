@@ -165,6 +165,12 @@ if (!$doc) {
         .nav-link.active {
             color: #90969D !important;
         }
+
+        .emoji {
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
@@ -173,7 +179,7 @@ if (!$doc) {
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-5" style="background-color: #000;">
         <div class="container-fluid">
 
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="#" style="cursor:default">
                 <img src="..\assets\logo.png" alt="Company Logo" height="48">
             </a>
 
@@ -197,7 +203,7 @@ if (!$doc) {
     <!-- Form -->
 
     <div class="container mt-5 p-3">
-        <h2 class="mb-4 mt-3">📝 Modifier le document</h2>
+        <h2 class="mb-4 mt-3"><img src="../../assets/emojis/1f4dd.png" alt="icon" class="emoji"> Modifier le document</h2>
 
         <form method="POST" enctype="multipart/form-data" class="mt-4">
             <input type="hidden" name="document_id" value="<?= htmlspecialchars($doc['document_id']) ?>">
@@ -217,10 +223,10 @@ if (!$doc) {
                 </p>
 
                 <!-- Optional: View the current file path (the old one) -->
-                <a href="../uploads/<?= urlencode($doc['file_path']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">📄 Voir le document</a>
+                <a href="../uploads/<?= urlencode($doc['file_path']) ?>" target="_blank" class="btn btn-sm btn-outline-primary"><img src="../../assets/emojis/1f4c4.png" alt="voir" class="emoji"> Voir le document</a>
             </div>
 
-            <button type="submit" name="update_document" class="btn btn-success">💾 Enregistrer</button>
+            <button type="submit" name="update_document" class="btn btn-success"><img src="../../assets/emojis/1f4be.png" alt="enregistrer" class="emoji"> Enregistrer</button>
             <a href="dashboard.php" class="btn " style="background-color:#747e87; color:#000;"> Retour</a>
         </form>
     </div>

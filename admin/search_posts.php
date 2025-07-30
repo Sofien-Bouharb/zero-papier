@@ -63,8 +63,8 @@ foreach ($posts as $w): ?>
         <td><?= htmlspecialchars($w['hostname']) ?></td>
         <td><?= htmlspecialchars($w['ip_address']) ?></td>
         <td style="text-align:center;">
-            <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
-            <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>
+            <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier"><img src="../assets/emojis/270f.png" alt="modif" class="emoji"></a>
+            <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');"><img src="../assets/emojis/1f5d1.png" alt="supprimer" class="emoji"></a>
         </td>
     </tr>
 <?php endforeach;

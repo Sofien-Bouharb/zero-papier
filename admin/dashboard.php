@@ -145,6 +145,12 @@ $view = $_GET['view'] ?? 'documents';
       opacity: 1 !important;
       /* make it fully visible */
     }
+
+    .emoji {
+      width: 1em;
+      height: 1em;
+      vertical-align: middle;
+    }
   </style>
 </head>
 
@@ -153,7 +159,7 @@ $view = $_GET['view'] ?? 'documents';
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
     <div class="container-fluid">
 
-      <a class="navbar-brand" href="#">
+      <a class="navbar-brand" href="#" style="cursor:default">
         <img src="..\assets\logo.png" alt="Company Logo" height="48">
       </a>
 
@@ -180,11 +186,13 @@ $view = $_GET['view'] ?? 'documents';
       <h3 class="m-3">Liste des cartes (boards)</h3>
       <!-- Search bar -->
       <div class="my-3 d-flex justify-content-center">
-        <input type="text" id="searchBoard" class="form-control w-50 search" placeholder="🔍 Rechercher un code index, un nom, un repère, etc." autofocus>
+        <input type="text" id="searchBoard" class="form-control search" placeholder=" Rechercher un code index, un nom, un repère, etc." autofocus>
+
+
       </div>
       <div class="row justify-content-between" id="paginationRow">
         <div class="col-auto">
-          <a href="add_board.php" class="btn btn-success mb-2 ">📤 Ajouter un code index</a>
+          <a href="add_board.php" class="btn btn-success mb-2 "><img src="../assets/emojis/1F4E4.png" alt="ajout" class="emoji"> Ajouter un code index</a>
         </div>
         <!-- Pagination Navbar-->
         <?php
@@ -257,8 +265,8 @@ $view = $_GET['view'] ?? 'documents';
               <td><?= htmlspecialchars($b['ref_pcb'] ?? '-') ?></td>
               <td><?= htmlspecialchars($b['clicher_pcb'] ?? '-') ?></td>
               <td style="text-align:center;">
-                <a href="edit_board.php?board_index_id=<?= $b['board_index_id'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
-                <a href="delete_board.php?id=<?= $b['board_index_id'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer cette carte ?');">🗑️</a>
+                <a href="edit_board.php?board_index_id=<?= $b['board_index_id'] ?>" class="text-warning me-3" title="Modifier"><img src="../assets/emojis/270f.png" alt="modif" class="emoji"></a>
+                <a href="delete_board.php?id=<?= $b['board_index_id'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer cette carte ?');"><img src="../assets/emojis/1f5d1.png" alt="supprimer" class="emoji"></a>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -269,12 +277,12 @@ $view = $_GET['view'] ?? 'documents';
       <h3 class="m-3">Liste des postes (workers)</h3>
       <!-- Search bar -->
       <div class="mb-3 d-flex justify-content-center">
-        <input type="text" id="searchPost" class="form-control w-50 search" placeholder="🔍 Rechercher un poste, un ilot, une IP..." autofocus>
+        <input type="text" id="searchPost" class="form-control w-50 search" placeholder=" Rechercher un poste, un ilot, une IP..." autofocus>
       </div>
 
       <div class="row justify-content-between" id="paginationRow">
         <div class="col-auto">
-          <a href="add_post.php" class="btn btn-success mb-2">📤 Ajouter un poste</a>
+          <a href="add_post.php" class="btn btn-success mb-2"><img src="../assets/emojis/1F4E4.png" alt="ajout" class="emoji"> Ajouter un poste</a>
         </div>
         <!-- Pagination Navbar-->
         <?php
@@ -350,8 +358,8 @@ $view = $_GET['view'] ?? 'documents';
               <td><?= htmlspecialchars($w['hostname']) ?></td>
               <td><?= htmlspecialchars($w['ip_address']) ?></td>
               <td style="text-align:center;">
-                <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier">✏️</a>
-                <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');">🗑️</a>
+                <a href="edit_post.php?step_number=<?= $w['step_number'] ?>" class="text-warning me-3" title="Modifier"><img src="../assets/emojis/270f.png" alt="modif" class="emoji"></a>
+                <a href="delete_post.php?id=<?= $w['step_number'] ?>" class="text-danger" title="Supprimer" onclick="return confirm('Supprimer ce poste ?');"><img src="../assets/emojis/1f5d1.png" alt="supprimer" class="emoji"></a>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -363,7 +371,7 @@ $view = $_GET['view'] ?? 'documents';
       <h3 class="m-3">Liste des associations documents-postes-codes</h3>
       <!-- Search bar -->
       <div class="mb-4 d-flex justify-content-center">
-        <input type="text" id="searchDocument" class="form-control w-50 search" placeholder="🔍 Rechercher un document, un poste, une carte..." autofocus>
+        <input type="text" id="searchDocument" class="form-control w-50 search" placeholder=" Rechercher un document, un poste, une carte..." autofocus>
       </div>
       <!-- Pagination Navbar-->
       <?php
@@ -376,10 +384,10 @@ $view = $_GET['view'] ?? 'documents';
       ?>
       <div class="row align-items-center mb-2 text-center" id="paginationRow">
         <div class="col-md-4 text-start">
-          <a href="upload.php" class="btn btn-success">📤 Ajouter un document</a>
+          <a href="upload.php" class="btn btn-success"><img src="../assets/emojis/1F4E4.png" alt="ajout" class="emoji"> Ajouter un document</a>
         </div>
         <div class="col-md-4 text-center">
-          <a href="#" class="btn" style="background-color: #747e87; color:#000;" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Modifier ou supprimer un document">🛠️ Modifier/Supprimer un document</a>
+          <a href="#" class="btn" style="background-color: #747e87; color:#000;" data-bs-toggle="modal" data-bs-target="#deleteDocumentModal" title="Modifier ou supprimer un document"><img src="../assets/emojis/1F6E0.png" alt="modif/supprimer" class="emoji"> Modifier/Supprimer un document</a>
         </div>
         <?php $range = 2; ?>
         <div class="col-md-4 text-end" id="paginationContainer">
@@ -452,7 +460,7 @@ $view = $_GET['view'] ?? 'documents';
               <td><span><strong><?= htmlspecialchars($row['hostname']) ?></strong></span></td>
               <td><strong><?= htmlspecialchars($row['board_name']) ?> (ID: <?= $row['board_index_id'] ?>)</strong></td>
               <td style="text-align:center;">
-                <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');">🗑️</a>
+                <a href="delete_association.php?doc_id=<?= $row['document_id'] ?>&board_id=<?= $row['board_index_id'] ?>&step_number=<?= urlencode($row['step_number']) ?>" class="text-danger" title="Supprimer cette association doc-post-board" onclick="return confirm('Supprimer cette association ?');"><img src="../assets/emojis/1f5d1.png" alt="ajout" class="emoji"></a>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -471,7 +479,7 @@ $view = $_GET['view'] ?? 'documents';
         </div>
         <div class="modal-body">
           <div id="delete-feedback"></div>
-          <input type="text" id="modalSearch" class="form-control mb-3" placeholder="🔍 Rechercher un document..." autofocus>
+          <input type="text" id="modalSearch" class="form-control mb-3" placeholder=" Rechercher un document..." autofocus>
           <ul id="document-list" class="list-group" style="max-height: 350px; overflow-y: auto;">
             <!-- AJAX will insert document rows here -->
           </ul>

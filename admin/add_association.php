@@ -14,7 +14,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 // Update the last activity timestamp (for session timeout management)
 $_SESSION['LAST_ACTIVITY'] = time();
 
-//Session messages handling
+// Session messages handling
 if (isset($_SESSION['error_message'])):
 ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
@@ -43,9 +43,7 @@ endif; ?>
     }, 4000);
 </script>
 
-
 <?php
-
 // Check for document ID in the URL
 if (!isset($_GET['id'])) {
     redirect_with_error("ID du document manquant.", 'dashboard.php');
@@ -57,12 +55,12 @@ $document_id = intval($_GET['id']);
 $docStmt = $pdo->prepare("SELECT * FROM documents_search.documents WHERE document_id = ?");
 $docStmt->execute([$document_id]);
 $document = $docStmt->fetch();
-//Document not found
+// Document not found
 if (!$document) {
     redirect_with_error("Document introuvable.", 'dashboard.php');
 }
 
-// Get all workers and ilots (we no longer fetch all boards here)
+// Get all workers, board names, and ilots
 $workers = $pdo->query("SELECT step_number, hostname, ilot_id FROM documents_search.workers ORDER BY hostname")->fetchAll();
 $board_names = $pdo->query("SELECT DISTINCT board_name FROM documents_search.boards ORDER BY board_name")->fetchAll();
 $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER BY ilot_name")->fetchAll();
@@ -112,14 +110,26 @@ $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER
         li {
             color: #000;
         }
+
+        .emoji {
+            width: 0.7em;
+            height: 0.7em;
+            vertical-align: middle;
+        }
+
+        .emoji {
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
 <body>
-    <!-- ==========Navigation Bar ========== -->
+    <!-- Navigation Bar -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#"><img src="../assets/logo.png" alt="Company Logo" height="48"></a>
+            <a class="navbar-brand" href="#" style="cursor:default"><img src="../assets/logo.png" alt="Company Logo" height="48"></a>
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link" href="dashboard.php">Documents</a></li>
@@ -130,7 +140,8 @@ $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER
             </div>
         </div>
     </nav>
-    <!-- ========== Form ========== -->
+
+    <!-- Form -->
     <div class="container mt-5 p-3">
         <h2 class="mt-3">Ajouter des associations pour :</h2>
         <h4 class="text-success"><?= htmlspecialchars($document['document_name']) ?></h4>
@@ -173,21 +184,30 @@ $ilots = $pdo->query("SELECT ilot_id, ilot_name FROM documents_search.ilot ORDER
             </div>
 
             <div class="input-group mb-2">
-                <input type="text" id="board_id_search" class="form-control" placeholder="🔍 Rechercher par ID de carte...">
-                <button type="button" class="btn btn-secondary m-1" id="select_all_boards">Tout sélectionner</button>
-                <button type="button" class="btn btn-secondary m-1" id="deselect_all_boards">Tout désélectionner</button>
+
             </div>
+
+
+            <div class="input-group mb-2">
+                <input type="text" id="board_id_search" class="form-control" placeholder="Rechercher par ID de carte...">
+                <button type="button" class="btn btn-sm btn-outline-secondary mx-1" onclick="searchBoards()"><img src="../../assets/emojis/1f50d.png" alt="search" class="emoji"></button>
+                <button type="button" class="btn btn-secondary m-1" onclick="selectAllBoards()">Tout sélectionner</button>
+                <button type="button" class="btn btn-secondary m-1" onclick="deselectAllBoards()">Tout désélectionner</button>
+            </div>
+
+
+
 
             <div id="board_checkboxes" class="form-control text-light">
                 <p class="text-muted">Sélectionnez un nom de carte et un poste.</p>
             </div>
 
-            <button type="button" class="btn my-2" onclick="addMapping()" style="background-color:#2d91ae; color:#000;">➕ Ajouter l'association</button>
+            <button type="button" class="btn my-2" onclick="addMapping()" style="background-color:#2d91ae; color:#000;"> <img src="../../assets/emojis/2795.png" alt="ajout" class="emoji"> Ajouter l'association</button>
             <input type="hidden" name="mappings" id="mappingsInput">
 
             <ul id="mappingList" class="mt-3"></ul>
 
-            <button type="submit" class="btn btn-success my-3">💾 Enregistrer les associations</button>
+            <button type="submit" class="btn btn-success my-3"><img src="../../assets/emojis/1f4be.png" alt="enregistrer" class="emoji"> Enregistrer les associations</button>
             <a href="dashboard.php" class="btn ms-2 my-3" style="background-color:#747e87; color:#000;">Retour</a>
         </form>
     </div>

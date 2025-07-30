@@ -160,6 +160,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .nav-link.active {
             color: #90969D !important;
         }
+
+        .emoji {
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
@@ -168,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
 
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="#" style="cursor:default">
                 <img src="..\assets\logo.png" alt="Company Logo" height="48">
             </a>
 
@@ -215,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+            <button type="submit" class="btn btn-success"><img src="../../assets/emojis/1f4be.png" alt="enregistrer" class="emoji"> Enregistrer</button>
             <a href="dashboard.php?view=posts" class="btn ms-2" style="background-color:#747e87; color:#000;">Retour</a>
         </form>
     </div>

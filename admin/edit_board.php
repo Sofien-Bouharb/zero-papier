@@ -58,11 +58,8 @@ $board = $stmt->fetch();
 
 if (!$board) {
     redirect_with_error("Carte introuvable.");
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+} else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //Get form inputs and attribute '-' if value not set
-    $board_index = (int)($_POST['board_index_id'] ?? 0);
     $board_name = trim($_POST['board_name'] ?? '-');
     $repere_dm = trim($_POST['repere_dm'] ?? '-');
     $designation = trim($_POST['designation'] ?? '-');
@@ -71,29 +68,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $clicher_pcb = trim($_POST['clicher_pcb'] ?? '-');
 
     // Validate required fields
-    if (!$board_name || !$board_index_id) {
-        $error = "Tous les champs obligatoires doivent être remplis.";
+    if (!$board_name) {
+        $error = "Le nom de la carte est un champ obligatoire.";
         redirect_with_error($error, 'edit_board.php?board_index_id=' . $board_index_id);
-    } elseif (!is_numeric($board_index) || $board_index < 10000 || $board_index > 99999) {
-
-        redirect_with_error("Entrez un entier entre 10000 et 99999 pour l'ID de la carte.", 'edit_board.php?board_index_id=' . $board_index_id);
     } else {
-        // Check if board_index_id already exists
-        $check = $pdo->prepare("
-  SELECT COUNT(*) FROM documents_search.boards 
-  WHERE board_index_id = :new_id AND board_index_id != :current_id");
-        $check->execute([
-            'new_id' => $board_index,
-            'current_id' => $board_index_id
-        ]);
-
-        if ($check->fetchColumn() > 0) {
-            redirect_with_error("Ce code index existe déjà.", ' edit_board.php?board_index_id=' . $board_index_id);
-        } else {
-            // Update the board
-            $update = $pdo->prepare("
+        // Update the board
+        $update = $pdo->prepare("
 UPDATE documents_search.boards
-SET board_index_id= :id_b,
+SET 
 board_name = :name,
 repere_dm = :repere,
 designation = :des,
@@ -103,22 +85,23 @@ clicher_pcb = :clicher
 WHERE board_index_id = :id
 ");
 
-            $update->execute([
-                'id_b' => $board_index,
-                'name' => $board_name,
-                'repere' => $repere_dm,
-                'des' => $designation,
-                'cie' => $ref_cie,
-                'pcb' => $ref_pcb,
-                'clicher' => $clicher_pcb,
-                'id' => $board_index_id
-            ]);
-            $_SESSION['success_message'] = "Carte modifié avec succès.";
-            header("Location: dashboard.php?view=boards");
-            exit();
-        }
+        $update->execute([
+
+            'name' => $board_name,
+            'repere' => $repere_dm,
+            'des' => $designation,
+            'cie' => $ref_cie,
+            'pcb' => $ref_pcb,
+            'clicher' => $clicher_pcb,
+            'id' => $board_index_id
+        ]);
+        $_SESSION['success_message'] = "Carte modifié avec succès.";
+        header("Location: dashboard.php?view=boards");
+        exit();
     }
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -166,6 +149,12 @@ WHERE board_index_id = :id
         .nav-link.active {
             color: #90969D !important;
         }
+
+        .emoji {
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
@@ -174,7 +163,7 @@ WHERE board_index_id = :id
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark border-bottom border-info shadow-sm mb-4" style="background-color: #000;">
         <div class="container-fluid">
 
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="#" style="cursor:default">
                 <img src="..\assets\logo.png" alt="Company Logo" height="48">
             </a>
 
@@ -198,12 +187,6 @@ WHERE board_index_id = :id
     <div class="container mt-5 p-3">
         <h2 class="mt-3">Modifier la carte d'ID: <?= htmlspecialchars($board_index_id) ?></h2>
         <form method="POST" class="mt-4">
-            <div class="mb-3">
-                <label class="form-label">Code Index</label>
-                <input type="number" name="board_index_id" class="form-control" value="<?= htmlspecialchars($board['board_index_id']) ?>" required min="10000"
-                    max="99999"
-                    oninput="this.value = this.value.slice(0, 5)">
-            </div>
             <div class="mb-3">
                 <label class="form-label">Nom de la carte</label>
                 <input type="text" name="board_name" class="form-control" value="<?= htmlspecialchars($board['board_name']) ?>" required>
@@ -234,7 +217,7 @@ WHERE board_index_id = :id
                 <input type="text" name="clicher_pcb" class="form-control" value="<?= htmlspecialchars($board['clicher_pcb'] ?? '-') ?>">
             </div>
 
-            <button type="submit" class="btn btn-success m-2">💾 Enregistrer</button>
+            <button type="submit" class="btn btn-success m-2"><img src="../../assets/emojis/1f4be.png" alt="enregistrer" class="emoji"> Enregistrer</button>
             <a href="dashboard.php?view=boards" class="btn m-2" style="background-color:#747e87; color:#000;">Retour</a>
         </form>
     </div>
